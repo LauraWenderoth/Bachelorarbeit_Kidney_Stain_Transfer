@@ -75,14 +75,18 @@ class Visualizer():
         self.current_epoch = 0
         self.ncols = opt.display_ncols
 
-        if self.display_id > 0:  # connect to a visdom server given <display_port> and <display_server>
-            import visdom
-            self.vis = visdom.Visdom(server=opt.display_server, port=opt.display_port, env=opt.display_env)
-            if not self.vis.check_connection():
-                self.create_visdom_connections()
+        # if self.display_id > 0:  # connect to a visdom server given <display_port> and <display_server>
+        #     import visdom
+        #     self.vis = visdom.Visdom(server=opt.display_server, port=opt.display_port, env=opt.display_env)
+        #     if not self.vis.check_connection():
+        #         self.create_visdom_connections()
 
         if self.use_wandb:
-            self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt) if not wandb.run else wandb.run
+            if opt.name == "":
+                self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', config=opt,
+                                            entity=opt.entity) if not wandb.run else wandb.run
+            else:
+                self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt,entity=opt.entity) if not wandb.run else wandb.run
             self.wandb_run._label(repo='CycleGAN-and-pix2pix')
 
         if self.use_html:  # create an HTML object at <checkpoints_dir>/web/; images will be saved under <checkpoints_dir>/web/images/
@@ -144,25 +148,25 @@ class Visualizer():
                     idx += 1
                 if label_html_row != '':
                     label_html += '<tr>%s</tr>' % label_html_row
-                try:
-                    self.vis.images(images, nrow=ncols, win=self.display_id + 1,
-                                    padding=2, opts=dict(title=title + ' images'))
-                    label_html = '<table>%s</table>' % label_html
-                    self.vis.text(table_css + label_html, win=self.display_id + 2,
-                                  opts=dict(title=title + ' labels'))
-                except VisdomExceptionBase:
-                    self.create_visdom_connections()
+                # try:
+                #     self.vis.images(images, nrow=ncols, win=self.display_id + 1,
+                #                     padding=2, opts=dict(title=title + ' images'))
+                #     label_html = '<table>%s</table>' % label_html
+                #     self.vis.text(table_css + label_html, win=self.display_id + 2,
+                #                   opts=dict(title=title + ' labels'))
+                # except VisdomExceptionBase:
+                #     self.create_visdom_connections()
 
-            else:     # show each image in a separate visdom panel;
-                idx = 1
-                try:
-                    for label, image in visuals.items():
-                        image_numpy = util.tensor2im(image)
-                        self.vis.image(image_numpy.transpose([2, 0, 1]), opts=dict(title=label),
-                                       win=self.display_id + idx)
-                        idx += 1
-                except VisdomExceptionBase:
-                    self.create_visdom_connections()
+            # else:     # show each image in a separate visdom panel;
+            #     idx = 1
+            #     try:
+            #         for label, image in visuals.items():
+            #             image_numpy = util.tensor2im(image)
+            #             self.vis.image(image_numpy.transpose([2, 0, 1]), opts=dict(title=label),
+            #                            win=self.display_id + idx)
+            #             idx += 1
+            #     except VisdomExceptionBase:
+            #         self.create_visdom_connections()
 
         if self.use_wandb:
             columns = [key for key, _ in visuals.items()]
@@ -216,18 +220,18 @@ class Visualizer():
             self.plot_data = {'X': [], 'Y': [], 'legend': list(losses.keys())}
         self.plot_data['X'].append(epoch + counter_ratio)
         self.plot_data['Y'].append([losses[k] for k in self.plot_data['legend']])
-        try:
-            self.vis.line(
-                X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1),
-                Y=np.array(self.plot_data['Y']),
-                opts={
-                    'title': self.name + ' loss over time',
-                    'legend': self.plot_data['legend'],
-                    'xlabel': 'epoch',
-                    'ylabel': 'loss'},
-                win=self.display_id)
-        except VisdomExceptionBase:
-            self.create_visdom_connections()
+        # try:
+        #     self.vis.line(
+        #         X=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1),
+        #         Y=np.array(self.plot_data['Y']),
+        #         opts={
+        #             'title': self.name + ' loss over time',
+        #             'legend': self.plot_data['legend'],
+        #             'xlabel': 'epoch',
+        #             'ylabel': 'loss'},
+        #         win=self.display_id)
+        # except VisdomExceptionBase:
+        #     self.create_visdom_connections()
         if self.use_wandb:
             self.wandb_run.log(losses)
 
