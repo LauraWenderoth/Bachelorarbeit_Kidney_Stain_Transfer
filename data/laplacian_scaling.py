@@ -1,6 +1,7 @@
 ### ANN KATRIN°°!
 
 import cv2
+from PIL import Image
 import numpy as np
 
 def downsampling(original):
@@ -11,7 +12,11 @@ def downsampling(original):
     :return: Downsampled images
     """
 
-    assert original.shape[0] == original.shape[1], "Images have to be squares"
+    # assert original.shape[0] == original.shape[1], "Images have to be squares"
+    original = np.array(original)
+    if original.shape[0] != original.shape[1]:
+        size = min(original.shape[0], original.shape[1])
+        original = original[:size][:size][:]
     # Find largest power of two that is less than the image size
     expo = original.shape[0].bit_length() - 1
     # Make sure image isn't smaller than 256x256 pixels
@@ -22,7 +27,7 @@ def downsampling(original):
     # Resize image to 256x256 (=2**8)
     for i in range(expo - 8):
         g = cv2.pyrDown(g)
-    downsampled_original = np.array(g)
+    downsampled_original = Image.fromarray(np.array(g))
     return downsampled_original
 
 
