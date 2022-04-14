@@ -4,7 +4,7 @@ from data.image_folder import make_dataset
 from PIL import Image
 import random
 import numpy as np
-from data.laplacian_scaling import downsampling
+from data.laplacian_scaling import downsampling, laplacian_upsampling
 
 class UnalignedDataset(BaseDataset):
     """
@@ -57,6 +57,7 @@ class UnalignedDataset(BaseDataset):
         # TODO Laplacian Pyramids
         if 'laplacian' in self.opt.preprocess:
             A = downsampling(A_img)
+            A_up = laplacian_upsampling(A_img,A)
             B = downsampling(B_img)
         else:
             A = A_img
