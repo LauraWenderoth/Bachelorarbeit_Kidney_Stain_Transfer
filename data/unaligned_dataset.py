@@ -4,7 +4,7 @@ from data.image_folder import make_dataset
 from PIL import Image
 import random
 import numpy as np
-from data.patch_extraction import downsampling, laplacian_upsampling
+from data.patch_extraction import pad_image_to_size
 
 class UnalignedDataset(BaseDataset):
     """
@@ -45,21 +45,28 @@ class UnalignedDataset(BaseDataset):
             A_paths (str)    -- image paths
             B_paths (str)    -- image paths
         """
-        A_path = self.A_paths[index % self.A_size]  # make sure index is within then range
+        path_index = index // 64
+        A_path = self.A_paths[path_index % self.A_size]  # make sure index is within then range
         if self.opt.serial_batches:   # make sure index is within then range
-            index_B = index % self.B_size
+            index_B = path_index % self.B_size
         else:   # randomize the index for domain B to avoid fixed pairs.
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
-        # TODO Laplacian Pyramids
-        if 'laplacian' in self.opt.preprocess:
-            A = downsampling(A_img)
-            B = downsampling(B_img)
-        else:
-            A = A_img
-            B = B_img
+
+        #slice part
+        img_pad_A = pad_image_to_size(A_img, 2048)
+        img_pad_B = pad_image_to_size(B_img, 2048)
+
+        patch_index = index % 64
+        x = patch_index//8
+        y = patch_index % 8
+        A = img_pad_A[x * 256:x * 256 + 256, y * 256:y * 256 + 256]
+        B = img_pad_B[x * 256:x * 256 + 256, y * 256:y * 256 + 256]
+        #convert to PIL
+        A = Image.fromarray(A)
+        B = Image.fromarray(B)
         # apply image transformation
         A = self.transform_A(A)
         B = self.transform_B(B)
@@ -71,6 +78,4 @@ class UnalignedDataset(BaseDataset):
         As we have two datasets with potentially different number of images,
         we take a maximum of
         """
-        return max(self.A_size, self.B_size)
-
-    def extract_patches(self):
+        return max(self.A_size*64, self.B_size*64)
