@@ -3,86 +3,51 @@ import cv2
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
 
-def downsampling(original):
-    """
-    Function for downsampling multiple images to 256x256 pixels.
-    If an image is smaller than 256x256 the original is returned
-    :param originals: Images to downscale using a Gaussian pyramid
-    :return: Downsampled images
-    """
+#Laura
+def pad_image_to_size(img, patch_size):
+    if img.shape[0] or img.shape[1] < patch_size:
+        difference_x = patch_size - img.shape[0]
+        pad_x1 = difference_x // 2
+        pad_x2 = difference_x // 2
+        if not difference_x % 2 == 0:
+            pad_x2 += 1
 
-    # assert original.shape[0] == original.shape[1], "Images have to be squares"
-    original = np.array(original)
-    if original.shape[0] != original.shape[1]:
-        size = min(original.shape[0], original.shape[1])
-        original = original[:size][:size][:]
-    # Find largest power of two that is less than the image size
-    expo = original.shape[0].bit_length() - 1
-    # Make sure image isn't smaller than 256x256 pixels
-    if expo < 8:
-        return original
-    img = cv2.resize(original, dsize=(2 ** expo, 2 ** expo), interpolation=cv2.INTER_CUBIC)
-    g = img.copy()
-    # Resize image to 256x256 (=2**8)
-    for i in range(expo - 8):
-        g = cv2.pyrDown(g)
-    downsampled_original = Image.fromarray(np.array(g))
-    return downsampled_original
+        difference_y = patch_size - img.shape[1]
+        pad_y1 = difference_y // 2
+        pad_y2 = difference_y // 2
+        if not difference_y % 2 == 0:
+            pad_y2 += 1
+
+        i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2), (0, 0)), 'symmetric')
+        return i
+    else:
+        print("WARNING! Not implemented in laplacian_scaling")
+
+def remove_pad_from_image(img, orignial_img,patch_size):
+    if orignial_img.shape[0] or orignial_img.shape[1] < patch_size:
+        difference_x = patch_size - orignial_img.shape[0]
+        pad_x1 = difference_x // 2
+        pad_x2 = difference_x // 2
+        if not difference_x % 2 == 0:
+            pad_x2 += 1
+
+        difference_y = patch_size - orignial_img.shape[1]
+        pad_y1 = difference_y // 2
+        pad_y2 = difference_y // 2
+        if not difference_y % 2 == 0:
+            pad_y2 += 1
+
+        i = img[pad_x1:-pad_x2,pad_y1:-pad_y2]
+        return i
+    else:
+        print("WARNING! Not implemented in laplacian_scaling")
 
 
 
-def laplacian_upsampling(original, input):
-    """
-    Perform upsampling of generated images as explained by Engin in the CycleDehaze paper (2018)
-    :param originals: Input the images were generated from (original size)
-    :param inputs: Generated images (small size)
-    :param original_shape: Shape of the original image
-    :return: Generated images (original size
-    """
-
-    # assert original.shape[0] == original.shape[1], "Images have to be squares"
-    original = np.array(original)
-    input = np.array(input)
-    size = min(original.shape[0], original.shape[1])
-    if original.shape[0] != original.shape[1]:
-        original = original[:size][:size][:]
-    # Find largest power of two that is less than the image size
-    expo = original.shape[0].bit_length() - 1
-    img = cv2.resize(original, dsize=(2 ** expo, 2 ** expo), interpolation=cv2.INTER_CUBIC)
-
-    # Calculate laplacian pyramid
-    # Downsample original
-    g_pyramid = []
-    ga = img.copy()
-    g_pyramid.append(ga.copy())
-    # Downsample image to 256x256 (=2**8)
-    for i in range(expo - 8):
-        ga = cv2.pyrDown(ga)
-        g_pyramid.append(ga.copy())
-    l_pyramid = []
-    for i in range(expo - 8):
-        lap = cv2.subtract(g_pyramid[i], cv2.pyrUp(g_pyramid[i + 1]))
-        l_pyramid.append(lap.copy())
-    # Last element of g pyramid is last element of l pyramid
-    l_pyramid.append(g_pyramid[-1].copy())
-    # Laplacian upsampling based on laplacian pyramid of the original
-    up_pyramid = []
-    up = input
-    up_pyramid.append(up.copy())
-    for i in range(expo - 8):
-        up = cv2.pyrUp(up) + l_pyramid[expo - (9 + i)]
-        up_pyramid.append(up.copy())
-    upsampled = up_pyramid[-1].copy()
-    upsampled = np.clip(upsampled, -1, 1)
-    # Re-size image to have original size
-    upsampled = cv2.resize(upsampled, dsize=(size, size), interpolation=cv2.INTER_CUBIC)
-    # Have to cut off padding:
-    # upsampled_cut = remove_minimal_pad(upsampled, (size, size))
-    # upsampled_input = Image.fromarray(upsampled)
-    return upsampled
 #https://theailearner.com/tag/laplacian-pyramid-opencv/
-def gaussian_pyramid(img, num_levels):
+def calculate_gaussian_pyramids(img, num_levels):
     lower = img.copy()
     gaussian_pyr = [lower]
     for i in range(num_levels):
@@ -103,7 +68,7 @@ def reconstruct(laplacian_pyr):
 
 
 # Then calculate the Laplacian pyramid
-def laplacian_pyramid(gaussian_pyr):
+def calculate_laplacian_pyramids(gaussian_pyr):
     laplacian_top = gaussian_pyr[-1]
     num_levels = len(gaussian_pyr) - 1
 
@@ -116,32 +81,100 @@ def laplacian_pyramid(gaussian_pyr):
     return laplacian_pyr
 
 if __name__ == '__main__':
-    path = "/home/laurawenderoth/Documents/kidney_microscopy/data/PAS/CKD154-002-PAS-fully-aligned.png"
+    # path = "/home/laurawenderoth/Documents/kidney_microscopy/data/PAS/CKD154-003-PAS-fully-aligned.png"
+    # img = Image.open(path)
+    # img = np.array(img)
+    # #new image
+    # path = "/home/laurawenderoth/Documents/kidney_microscopy/data/IF/CKD154-003-IF-fully-aligned.png"
+    # IF = Image.open(path)
+    # IF = np.array(IF)
+    # lower = img.copy()
+    # # Create a Gaussian Pyramid
+    # gaussian_pyr = [lower]
+    # for i in range(5):
+    #     lower = cv2.pyrDown(lower)
+    #     gaussian_pyr.append(lower)
+    # # Last level of Gaussian remains same in Laplacian
+    # laplacian_top = gaussian_pyr[-1]
+    #
+    # # Create a Laplacian Pyramid
+    # laplacian_pyr = [laplacian_top]
+    # for i in range(5, 0, -1):
+    #     size = (gaussian_pyr[i - 1].shape[1], gaussian_pyr[i - 1].shape[0])
+    #     gaussian_expanded = cv2.pyrUp(gaussian_pyr[i], dstsize=size)
+    #     laplacian = cv2.subtract(gaussian_pyr[i - 1], gaussian_expanded)
+    #     laplacian_pyr.append(laplacian)
+    # for g in laplacian_pyr:
+    #     g = np.array(g, dtype=np.uint8)
+    #     g= g/g.max()
+    #     print(g.min(),g.max())
+    #     plt.imshow(g)
+    #     plt.show()
+
+    path = "/home/laurawenderoth/Documents/kidney_microscopy/data/PAS/CKD154-003-PAS-fully-aligned.png"
     img = Image.open(path)
-    down_img = downsampling(img)
-    up_img = laplacian_upsampling(img,down_img)
+    img = np.array(img)
+    # down_img = downsampling(img)
+    # up_img = laplacian_upsampling(img,down_img)
 
     expo = np.array(img).shape[0].bit_length()
     num_levels = expo - 8
-
-    gaussian_pyramid = gaussian_pyramid(np.array(img),num_levels)
-    g = gaussian_pyramid[-1]
+    print(img.shape)
+    img_pad = pad_image_to_size(img,2048)
+    lower = img_pad.copy()
+    gaussian_pyramids = calculate_gaussian_pyramids(np.array(lower), num_levels)
+    g = gaussian_pyramids[-1]
     g = np.array(g, dtype=np.uint8)
-    laplacian_pyramid = laplacian_pyramid(gaussian_pyramid)
-    laplacian_lst = reconstruct(laplacian_pyramid)
-    fertiges_Bild = laplacian_lst[-1]
+    print(g.shape)
+    #new image
+    path = "/home/laurawenderoth/Documents/kidney_microscopy/data/IF/CKD154-003-IF-fully-aligned.png"
+    IF = Image.open(path)
+    IF = np.array(IF)
+    img_pad_if = pad_image_to_size(IF, 2048)
+    lower_if = img_pad_if.copy()
+    gaussian_pyramids_if = calculate_gaussian_pyramids(np.array(lower_if), num_levels)
+    g_if = gaussian_pyramids_if[-1]
+    g_if= np.array(g_if, dtype="float32")
 
-    plt.figure(0)
+    laplacian_pyramid = calculate_laplacian_pyramids(gaussian_pyramids)
+    l_if_pyramids = laplacian_pyramid.copy()
+    l_if_pyramids[0] = g_if
+    laplacian_lst = reconstruct(l_if_pyramids)
+    fertiges_Bild = laplacian_lst[-1]
+    #veränderung dtype von float32 zu np.uint8
+    fertiges_Bild = np.array(fertiges_Bild, dtype=np.uint8)
+    img_without_pad = remove_pad_from_image(fertiges_Bild,img,2048)
     plt.imshow(img)
-    plt.figure(2)
-    plt.imshow(down_img)
-    plt.figure(1)
-    plt.imshow(up_img)
+    plt.title("orignial image PAS")
+    plt.show()
+    plt.imshow(img_pad)
+    plt.title("padded image PAS")
+    plt.show()
+    g_if = np.array(g_if, dtype=np.uint8)
+    plt.imshow(g_if)
+    plt.title("downsampled image IF")
+    plt.show()
+    plt.imshow(fertiges_Bild)
+    plt.title("upsampled image IF with PAS Laplacian pyramids")
+    plt.show()
+    plt.imshow(img_without_pad)
+    plt.title("upsampled without padding")
     plt.show()
 
 '''
 for g in gaussian_pyramid:
     g = np.array(g, dtype=np.uint8)
     plt.imshow(g)
+    plt.show()
+    
+fig = plt.figure(figsize=(10,5))
+    fig.add_subplot(1, 4, 1)
+    plt.imshow(img)
+    fig.add_subplot(1, 4, 2)
+    plt.imshow(g)
+    fig.add_subplot(1, 4, 3)
+    plt.imshow(fertiges_Bild)
+    fig.add_subplot(1, 4, 4)
+    plt.imshow(img_without_pad)
     plt.show()
 '''
