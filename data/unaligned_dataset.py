@@ -66,7 +66,7 @@ class UnalignedDataset(BaseDataset):
         patch_index = index % patches_per_width**2
         x = patch_index//patches_per_width
         y = patch_index % patches_per_width
-        patch_size = 2048/patches_per_width
+        patch_size = int(2048/patches_per_width)
         A = img_pad_A[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size]
         B = img_pad_B[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size]
         if patch_size != 256:
@@ -90,16 +90,17 @@ class UnalignedDataset(BaseDataset):
 
 def downsampling(img, patch_size):
     expo = np.array(img).shape[0].bit_length()
-    num_levels = expo - np.array(img).shape[0].bit_length()
+    num_levels = expo - np.array(img).shape[0].bit_length() +1
     lower = img.copy()
     gaussian_pyr = [lower]
     for i in range(num_levels):
         lower = cv2.pyrDown(lower)
         gaussian_pyr.append(np.float32(lower))
     g = gaussian_pyr[-1]
-    return g
+    return g.astype(np.uint8)
 
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()  # get training options
     dataset = UnalignedDataset(opt)
+    dataset.__getitem__(0)
