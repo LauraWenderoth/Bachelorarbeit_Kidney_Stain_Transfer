@@ -7,7 +7,7 @@ import numpy as np
 from data.patch_extraction import pad_image_to_size
 import cv2
 from options.train_options import TrainOptions
-
+from torchvision import transforms
 
 
 class UnalignedDataset(BaseDataset):
@@ -77,8 +77,9 @@ class UnalignedDataset(BaseDataset):
         A = Image.fromarray(A)
         B = Image.fromarray(B)
         # apply image transformation
-        A = self.transform_A(A)
-        B = self.transform_B(B)
+        transform = transforms.ToTensor()
+        A = transform(A)
+        B = transform(B)
         print(A.shape)
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
 
