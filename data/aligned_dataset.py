@@ -41,13 +41,14 @@ class AlignedDataset(BaseDataset):
         A = AB.crop((0, 0, w2, h))
         B = AB.crop((w2, 0, w, h))
 
-        # apply the same transform to both A and B
-        transform_params = get_params(self.opt, A.size)
-        A_transform = get_transform(self.opt, transform_params, grayscale=(self.input_nc == 1))
-        B_transform = get_transform(self.opt, transform_params, grayscale=(self.output_nc == 1))
 
-        A = A_transform(A)
-        B = B_transform(B)
+        # apply the same transform to both A and B
+        # transform_params = get_params(self.opt, A.size)
+        # A_transform = get_transform(self.opt, transform_params, grayscale=(self.input_nc == 1))
+        # B_transform = get_transform(self.opt, transform_params, grayscale=(self.output_nc == 1))
+        #
+        # A = A_transform(A)
+        # B = B_transform(B)
 
         return {'A': A, 'B': B, 'A_paths': AB_path, 'B_paths': AB_path}
 

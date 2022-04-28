@@ -5,6 +5,9 @@ from PIL import Image
 import random
 import numpy as np
 from data.patch_extraction import pad_image_to_size
+import cv2
+from options.train_options import TrainOptions
+from data import create_dataset
 
 class UnalignedDataset(BaseDataset):
     """
@@ -36,6 +39,7 @@ class UnalignedDataset(BaseDataset):
         self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
 
     def __getitem__(self, index):
+        patches_per_width = 4
         """Return a data point and its metadata information.
         Parameters:
             index (int)      -- a random integer for data indexing
@@ -45,7 +49,7 @@ class UnalignedDataset(BaseDataset):
             A_paths (str)    -- image paths
             B_paths (str)    -- image paths
         """
-        path_index = index // 64
+        path_index = index // patches_per_width**2
         A_path = self.A_paths[path_index % self.A_size]  # make sure index is within then range
         if self.opt.serial_batches:   # make sure index is within then range
             index_B = path_index % self.B_size
@@ -59,11 +63,15 @@ class UnalignedDataset(BaseDataset):
         img_pad_A = pad_image_to_size(A_img, 2048)
         img_pad_B = pad_image_to_size(B_img, 2048)
 
-        patch_index = index % 64
-        x = patch_index//8
-        y = patch_index % 8
-        A = img_pad_A[x * 256:x * 256 + 256, y * 256:y * 256 + 256]
-        B = img_pad_B[x * 256:x * 256 + 256, y * 256:y * 256 + 256]
+        patch_index = index % patches_per_width**2
+        x = patch_index//patches_per_width
+        y = patch_index % patches_per_width
+        patch_size = 2048/patches_per_width
+        A = img_pad_A[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size]
+        B = img_pad_B[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size]
+        if patch_size != 256:
+            A = downsampling(np.array(A), 256)
+            B = downsampling(np.array(B), 256)
         #convert to PIL
         A = Image.fromarray(A)
         B = Image.fromarray(B)
@@ -79,3 +87,19 @@ class UnalignedDataset(BaseDataset):
         we take a maximum of
         """
         return max(self.A_size*64, self.B_size*64)
+
+def downsampling(img, patch_size):
+    expo = np.array(img).shape[0].bit_length()
+    num_levels = expo - np.array(img).shape[0].bit_length()
+    lower = img.copy()
+    gaussian_pyr = [lower]
+    for i in range(num_levels):
+        lower = cv2.pyrDown(lower)
+        gaussian_pyr.append(np.float32(lower))
+    g = gaussian_pyr[-1]
+    return g
+
+
+if __name__ == '__main__':
+    opt = TrainOptions().parse()  # get training options
+    dataset = UnalignedDataset(opt)
