@@ -80,7 +80,8 @@ class UnalignedDataset(BaseDataset):
         transform = transforms.ToTensor()
         A = transform(A)
         B = transform(B)
-        print(A.shape)
+        # print(A.shape)
+
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
 
     def __len__(self):

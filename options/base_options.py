@@ -78,7 +78,7 @@ class BaseOptions():
         opt, _ = parser.parse_known_args()  # parse again with new defaults
 
         # modify dataset-related parser options
-        dataset_name = opt.dataset_mode
+        dataset_name = "unaligned"#TODO opt.dataset_mode
         dataset_option_setter = data.get_option_setter(dataset_name)
         parser = dataset_option_setter(parser, self.isTrain)
 
