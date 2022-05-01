@@ -5,6 +5,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 
+def downsampling(img, patch_size):
+    expo = np.array(img).shape[0].bit_length()
+    num_levels = expo - patch_size.bit_length()
+    lower = img.copy()
+    gaussian_pyr = [lower]
+    for i in range(num_levels):
+        lower = cv2.pyrDown(lower)
+        gaussian_pyr.append(np.float32(lower))
+    g = gaussian_pyr[-1]
+    return g.astype(np.uint8)
+
 #Laura
 def pad_image_to_size(img, patch_size):
     img = np.array(img)
@@ -22,11 +33,12 @@ def pad_image_to_size(img, patch_size):
             pad_y2 += 1
 
         i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2), (0, 0)), 'symmetric')
-        return Image.fromarray(i)
+        return i
     else:
         print("WARNING! Not implemented in laplacian_scaling")
 
 if __name__ == '__main__':
+    patches_per_width = 2
     path = "/home/laurawenderoth/Documents/kidney_microscopy/data/PAS/CKD154-003-PAS-fully-aligned.png"
     img = Image.open(path)
     img = np.array(img)
@@ -38,19 +50,21 @@ if __name__ == '__main__':
 
     expo = np.array(img).shape[0].bit_length()
     patchsize = 2**expo
-    number_patches = patchsize//256
 
     img_pad = pad_image_to_size(img,patchsize)
+    patch_size = int(2048 / patches_per_width)
     patches = []
-    for x in range(number_patches):
-        for y in range(number_patches):
-            patch = img_pad[x*256:x*256+256,y*256:y*256+256]
+    for x in range(patches_per_width):
+        for y in range(patches_per_width):
+            patch = img_pad[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size]
+            if patch_size != 256:
+                patch = downsampling(np.array(patch), 256)
             patches.append(patch)
 
     #plot
     fig = plt.figure(figsize=(20, 20))
-    columns = number_patches
-    rows = number_patches
+    columns = patches_per_width
+    rows = patches_per_width
     for i in range(1, columns * rows + 1):
         img = patches[i-1]
         fig.add_subplot(rows, columns, i)

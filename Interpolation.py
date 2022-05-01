@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import ndimage, misc
 import cv2
+from skimage import color
 
 import glob
 def calculate_gaussian_pyramids(img, num_levels):
@@ -48,6 +49,8 @@ if __name__ == '__main__':
 
 
     Differenz = IF-up
+    gray_diff = color.rgb2gray(Differenz)
+    plt.imsave("/home/laurawenderoth/Documents/Bachelorarbeit/fails/difference.png",gray_diff,cmap="gray")
     patches.append(Differenz)
     names.append("IF-UP")
 

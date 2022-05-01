@@ -78,8 +78,8 @@ class UnalignedDataset(BaseDataset):
         B = Image.fromarray(B)
         # apply image transformation
         transform = transforms.ToTensor()
-        A = transform(A)
-        B = transform(B)
+        A = self.transform_A(A)
+        B = self.transform_B(B)
         # print(A.shape)
 
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
