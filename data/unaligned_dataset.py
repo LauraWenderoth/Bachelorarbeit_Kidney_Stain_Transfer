@@ -5,7 +5,7 @@ from PIL import Image
 import random
 import numpy as np
 from data.patch_extraction import pad_image_to_size
-import cv2
+from util.util import downsampling
 from options.train_options import TrainOptions
 from torchvision import transforms
 
@@ -38,7 +38,7 @@ class UnalignedDataset(BaseDataset):
         output_nc = self.opt.input_nc if btoA else self.opt.output_nc  # get the number of channels of output image
         self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
         self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
-        self.patches_per_width = 4
+        self.patches_per_width = opt.patches_per_width
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
@@ -65,6 +65,9 @@ class UnalignedDataset(BaseDataset):
         img_pad_B = pad_image_to_size(B_img, 2048)
 
         patch_index = index % self.patches_per_width ** 2
+
+        A_path = A_path[:-4] + "_patch_" + str(patch_index).zfill(3)+".png"
+        B_path = B_path[:-4] + "_patch_" + str(patch_index).zfill(3)+".png"
         x = patch_index // self.patches_per_width
         y = patch_index % self.patches_per_width
         patch_size = int(2048 / self.patches_per_width)
@@ -92,16 +95,7 @@ class UnalignedDataset(BaseDataset):
         return max(self.A_size * self.patches_per_width**2, self.B_size * self.patches_per_width**2)
 
 
-def downsampling(img, patch_size):
-    expo = np.array(img).shape[0].bit_length()
-    num_levels = expo - patch_size.bit_length()
-    lower = img.copy()
-    gaussian_pyr = [lower]
-    for i in range(num_levels):
-        lower = cv2.pyrDown(lower)
-        gaussian_pyr.append(np.float32(lower))
-    g = gaussian_pyr[-1]
-    return g.astype(np.uint8)
+
 
 
 if __name__ == '__main__':

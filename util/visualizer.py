@@ -17,7 +17,7 @@ else:
     VisdomExceptionBase = ConnectionError
 
 
-def save_images(save_path, visuals, image_path, aspect_ratio=1.0, width=256, use_wandb=True): #Normal use_wandb=False
+def save_images(save_path, visuals, image_path, aspect_ratio=1.0, use_wandb=True): #Normal use_wandb=False
     """Save images to the disk.
     Parameters:
         webpage (the HTML class) -- the HTML webpage class that stores these imaegs (see html.py for more details)

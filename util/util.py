@@ -4,6 +4,7 @@ import torch
 import numpy as np
 from PIL import Image
 import os
+import cv2
 
 
 def tensor2im(input_image, imtype=np.uint8):
@@ -95,3 +96,14 @@ def mkdir(path):
     """
     if not os.path.exists(path):
         os.makedirs(path)
+
+def downsampling(img, patch_size):
+    expo = np.array(img).shape[0].bit_length()
+    num_levels = expo - patch_size.bit_length()
+    lower = img.copy()
+    gaussian_pyr = [lower]
+    for i in range(num_levels):
+        lower = cv2.pyrDown(lower)
+        gaussian_pyr.append(np.float32(lower))
+    g = gaussian_pyr[-1]
+    return g.astype(np.uint8)

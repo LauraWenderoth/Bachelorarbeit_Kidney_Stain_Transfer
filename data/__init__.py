@@ -62,7 +62,7 @@ class CustomDatasetDataLoader():
         Step 2: create a multi-threaded data loader.
         """
         self.opt = opt
-        dataset_class = find_dataset_using_name("unaligned") #TODO opt.dataset_mode
+        dataset_class = find_dataset_using_name(opt.dataset_mode) #TODO opt.dataset_mode
         self.dataset = dataset_class(opt)
         print("dataset [%s] was created" % type(self.dataset).__name__)
         self.dataloader = torch.utils.data.DataLoader(

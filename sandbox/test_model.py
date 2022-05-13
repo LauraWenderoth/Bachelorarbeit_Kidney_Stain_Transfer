@@ -1,5 +1,5 @@
-from .base_model import BaseModel
-from . import networks
+from models.base_model import BaseModel
+from models import networks
 
 
 class TestModel(BaseModel):
