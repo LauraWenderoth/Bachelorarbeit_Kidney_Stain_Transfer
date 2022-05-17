@@ -21,7 +21,7 @@ class BaseOptions():
         # basic parameters
         parser.add_argument('--dataroot', default="/home/laurawenderoth/Documents/kidney_microscopy/data", help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         parser.add_argument('--name', type=str, default='', help='name of the experiment. It decides where to store samples and models')
-        parser.add_argument('--use_wandb', default=True, help='use wandb')
+        parser.add_argument('--use_wandb', default=False, help='use wandb')
         parser.add_argument('--entity', default="laurawenderoth", help='Entity of the wandb project')
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
@@ -39,7 +39,7 @@ class BaseOptions():
         parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
         parser.add_argument('--no_dropout', action='store_true', help='no dropout for the generator')
         # dataset parameters
-        parser.add_argument('--patches_per_width', type=int, default=1, help='Number of patches per width, if 4, than the image is dived into 16 patches')
+        parser.add_argument('--patches_per_width', type=int, default=2, help='Number of patches per width, if 4, than the image is dived into 16 patches')
         parser.add_argument('--dataset_mode', type=str, default='unaligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
         parser.add_argument('--direction', type=str, default='BtoA', help='AtoB or BtoA')
         parser.add_argument('--serial_batches', default = True, action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')

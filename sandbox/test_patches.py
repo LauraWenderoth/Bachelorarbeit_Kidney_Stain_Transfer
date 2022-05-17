@@ -48,6 +48,7 @@ if __name__ == '__main__':
     image = np.zeros((256*opt.patches_per_width,256*opt.patches_per_width,3))
     for i, data in enumerate(dataset):
         if i % number_of_patches == 0 and i != 0:
+            #TODO save path für image spezifisch anlegen
             save_image(np.array(image,dtype=np.uint8), save_path+"/wuhhu.png")
             image = np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3))
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
