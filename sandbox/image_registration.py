@@ -52,12 +52,12 @@ if __name__ == '__main__':
             df_images.loc[ (i,'IF')] = 0
 
     #save images
-    IF_DATA_WITH_ANNOTATION = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_with_annotation/IF/"
-    PAS_DATA_WITH_ANNOTATION = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_with_annotation/PAS/"
+    IF_DATA_WITH_ANNOTATION = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_without_annotation/IF/"
+    PAS_DATA_WITH_ANNOTATION = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_without_annotation/PAS/"
     image_paths_PAS = glob.glob(IMAGE_ROOT_DIR_PAS + "*", recursive=True)
     image_paths_IF = glob.glob(IMAGE_ROOT_DIR_IF + "*", recursive=True)
     for i, j in df_images.iterrows():
-        if df_images.loc[(i, 'Annotation')] == 1 and df_images.loc[(i, 'Registration')] == "fine":
+        if df_images.loc[(i, 'Annotation')] == 0 and df_images.loc[(i, 'Registration')] == "fine":
             PAS_path = ""
             IF_path = ""
             for path in image_paths_PAS:
