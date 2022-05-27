@@ -46,6 +46,24 @@ def save_images(save_path, visuals, image_path, aspect_ratio=1.0, use_wandb=True
     if use_wandb:
         wandb.log(ims_dict)
 
+def calculate_evaluation_metrics(visuals,opt):
+    evaluation_metrics = {}
+    number_of_channels = opt.input_nc - 1
+    if ("real_A" and "fake_A") in visuals.keys():
+        real = visuals["real_A"]
+        fake = visuals["fake_A"]
+        real = util.tensor2im(real)
+        fake = util.tensor2im(fake)
+        ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
+        evaluation_metrics["SSMI_A"]=ssim_value
+    if ("real_B" and "fake_B") in visuals.keys():
+        real = visuals["real_B"]
+        fake = visuals["fake_B"]
+        real = util.tensor2im(real)
+        fake = util.tensor2im(fake)
+        ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
+        evaluation_metrics["SSMI_B"]=ssim_value
+    return evaluation_metrics
 
 class Visualizer():
     """This class includes several functions that can display/save images and print/save logging information.
@@ -122,24 +140,7 @@ class Visualizer():
             self.wandb_run.log(losses)
             self.wandb_run.log({'Epoch':epoch})
 
-    def calculate_evaluation_metrics(self,visuals):
-        evaluation_metrics = {}
-        number_of_channels = self.opt.input_nc - 1
-        if ("real_A" and "fake_A") in visuals.keys():
-            real = visuals["real_A"]
-            fake = visuals["fake_A"]
-            real = util.tensor2im(real)
-            fake = util.tensor2im(fake)
-            ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
-            evaluation_metrics["SSMI_A"]=ssim_value
-        if ("real_B" and "fake_B") in visuals.keys():
-            real = visuals["real_B"]
-            fake = visuals["fake_B"]
-            real = util.tensor2im(real)
-            fake = util.tensor2im(fake)
-            ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
-            evaluation_metrics["SSMI_B"]=ssim_value
-        return evaluation_metrics
+
 
     def log_validation_metrics(self,opt,model,val_dataset):
         if opt.phase == "val":
@@ -149,7 +150,7 @@ class Visualizer():
                 model.set_input(data)
                 model.compute_visuals()
                 visuals = model.get_current_visuals()
-                evaluation_metrics = self.calculate_evaluation_metrics(visuals)
+                evaluation_metrics = calculate_evaluation_metrics(visuals,opt)
                 if "SSMI_A" in evaluation_metrics.keys():
                     SSMI_A.append(evaluation_metrics["SSMI_A"])
                 if "SSMI_B" in evaluation_metrics.keys():
