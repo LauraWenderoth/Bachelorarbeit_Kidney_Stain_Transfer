@@ -122,6 +122,49 @@ class Visualizer():
             self.wandb_run.log(losses)
             self.wandb_run.log({'Epoch':epoch})
 
+    def calculate_evaluation_metrics(self,visuals):
+        evaluation_metrics = {}
+        number_of_channels = self.opt.input_nc - 1
+        if ("real_A" and "fake_A") in visuals.keys():
+            real = visuals["real_A"]
+            fake = visuals["fake_A"]
+            real = util.tensor2im(real)
+            fake = util.tensor2im(fake)
+            ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
+            evaluation_metrics["SSMI_A"]=ssim_value
+        if ("real_B" and "fake_B") in visuals.keys():
+            real = visuals["real_B"]
+            fake = visuals["fake_B"]
+            real = util.tensor2im(real)
+            fake = util.tensor2im(fake)
+            ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
+            evaluation_metrics["SSMI_B"]=ssim_value
+        return evaluation_metrics
+
+    def log_validation_metrics(self,opt,model,val_dataset):
+        if opt.phase == "val":
+            SSMI_A = []
+            SSMI_B = []
+            for i, data in enumerate(val_dataset):
+                model.set_input(data)
+                model.compute_visuals()
+                visuals = model.get_current_visuals()
+                evaluation_metrics = self.calculate_evaluation_metrics(visuals)
+                if "SSMI_A" in evaluation_metrics.keys():
+                    SSMI_A.append(evaluation_metrics["SSMI_A"])
+                if "SSMI_B" in evaluation_metrics.keys():
+                    SSMI_B.append(evaluation_metrics["SSMI_B"])
+            if len(SSMI_A) > 0:
+                ssmi_a = np.array(SSMI_A)
+                ssmi_a = ssmi_a.mean()
+                if self.use_wandb:
+                    self.wandb_run.log({'validation SSMI_A': ssmi_a})
+            if len(SSMI_B) > 0:
+                ssmi_b = np.array(SSMI_B)
+                ssmi_b = ssmi_b.mean()
+                if self.use_wandb:
+                    self.wandb_run.log({'validation SSMI_B': ssmi_b})
+
     def log_evaluation_metrics(self,visuals):
         number_of_channels = self.opt.input_nc-1
         if ("real_A" and "fake_A") in visuals.keys():
@@ -131,7 +174,7 @@ class Visualizer():
             fake = util.tensor2im(fake)
             ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
             if self.use_wandb:
-                self.wandb_run.log({'SSMI_A': ssim_value})
+                self.wandb_run.log({'train SSMI_A': ssim_value})
         if ("real_B" and "fake_B") in visuals.keys():
             real = visuals["real_B"]
             fake = visuals["fake_B"]
@@ -139,7 +182,7 @@ class Visualizer():
             fake = util.tensor2im(fake)
             ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
             if self.use_wandb:
-                self.wandb_run.log({'SSMI_B': ssim_value})
+                self.wandb_run.log({'train SSMI_B': ssim_value})
 
     # losses: same format as |losses| of plot_current_losses
     def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
