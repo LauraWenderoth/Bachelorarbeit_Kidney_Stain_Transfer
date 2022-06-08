@@ -1,5 +1,6 @@
 import pandas as pd
 import glob
+import numpy as np
 import shutil
 def extract_names(paths):
     names = []
@@ -16,7 +17,26 @@ def get_list_of_names(root_path):
     names = extract_names(image_paths)
     return names
 
+def add_attribute_using_folder():
+    FOLDER_ROOT_DIR = "/home/laurawenderoth/Documents/kidney_microscopy/data/testA/"
+    NAME_NEW_COLUMN = "Test"
+    EXEL_DIR = "/home/laurawenderoth/Documents/Bachelorarbeit/overview_images.xlsx"
+    EXEL_SAVE_DIR = "/home/laurawenderoth/Documents/kidney_microscopy/data/overview_images.xlsx"
+    new_attribute_names = get_list_of_names(FOLDER_ROOT_DIR)
+
+    df_images  = pd.read_excel(EXEL_DIR, index_col=0)
+    df_images[NAME_NEW_COLUMN] = 0
+
+    for i, j in df_images.iterrows():
+        name = j["image_name"]
+        if name in new_attribute_names:
+            df_images.loc[(i, NAME_NEW_COLUMN)] = 1
+
+    df_images.to_excel(EXEL_SAVE_DIR)
+
 if __name__ == '__main__':
+    add_attribute_using_folder()
+
     IMAGE_ROOT_DIR_PAS = "/home/laurawenderoth/Documents/kidney_microscopy/data/all/PAS/"
     IMAGE_ROOT_DIR_IF = "/home/laurawenderoth/Documents/kidney_microscopy/data/all/IF/"
     BAD_REGISTERD_ROOT_DIR = "/home/laurawenderoth/Documents/kidney_microscopy/data/check registration controls/bad registration/"
