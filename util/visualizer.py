@@ -5,6 +5,7 @@ import ntpath
 import time
 from . import util
 from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error as mse
 
 try:
     import wandb
@@ -174,16 +175,19 @@ class Visualizer():
             real = util.tensor2im(real)
             fake = util.tensor2im(fake)
             ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
+            mse_value = mse(real,fake)
             if self.use_wandb:
-                self.wandb_run.log({'train SSMI_A': ssim_value})
+                self.wandb_run.log({'train SSMI_A': ssim_value, 'train MSE_A': mse_value})
         if ("real_B" and "fake_B") in visuals.keys():
             real = visuals["real_B"]
             fake = visuals["fake_B"]
             real = util.tensor2im(real)
             fake = util.tensor2im(fake)
             ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
+            mse_value = mse(real, fake)
+            #TODO FID
             if self.use_wandb:
-                self.wandb_run.log({'train SSMI_B': ssim_value})
+                self.wandb_run.log({'train SSMI_B': ssim_value, 'train MSE_B': mse_value})
 
     # losses: same format as |losses| of plot_current_losses
     def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
