@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     if opt.eval:
         model.eval()
-    save_path = "./results"
+    save_path = "/home/laurawenderoth/Documents/kidney_microscopy/data/results"
     mkdir(save_path)
     number_of_patches = opt.patches_per_width ** 2
     images = {}
@@ -56,11 +56,11 @@ if __name__ == '__main__':
         visuals = model.get_current_visuals()  # get image results
 
         # zusamensetzen der patches
-        if patch_index == 0:
+        if patch_index == 0 and opt.patches_per_width != 1:
             for key in visuals.keys():
                 key = key +" merged"
                 images[key] = (np.zeros((256*opt.patches_per_width,256*opt.patches_per_width,3)))
-        elif patch_index % number_of_patches == 0:
+        elif patch_index % number_of_patches == 0 and opt.patches_per_width != 1:
             image_name = img_path[0].split("/")[-1]
             image_name = image_name.split(".")[0][:-3]
             for key in images.keys():
@@ -79,10 +79,11 @@ if __name__ == '__main__':
         save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
                     use_wandb=opt.use_wandb)
         evaluation_metrics = calculate_evaluation_metrics(visuals,opt)
-        for key in visuals.keys():
-            patch = visuals[key]
-            key = key + " merged"
-            put_image_together(images[key], patch, patch_index, opt.patches_per_width)
+        if opt.patches_per_width != 1:
+            for key in visuals.keys():
+                patch = visuals[key]
+                key = key + " merged"
+                put_image_together(images[key], patch, patch_index, opt.patches_per_width)
 
         if "SSMI_A" in evaluation_metrics.keys():
             SSMI_A.append(evaluation_metrics["SSMI_A"])
