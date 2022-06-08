@@ -26,7 +26,7 @@ class BaseOptions():
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--load_path', type=str,
-                            default="/home/laurawenderoth/Documents/kidney_microscopy/CycleGanPytorch/checkpoints/pix2pix_2_per_widith_bachtsize_128/50_net_G.pth",
+                            default="/home/laurawenderoth/Documents/kidney_microscopy/CycleGanPytorch/checkpoints/checkpoints_pix2pix_128_batchsize_1_patch_perwidth/150_net_G.pth",
                             help='path to state dict, if empty /checkpoints/latest_net_G.pth is used')
 
         # model parameters
@@ -43,7 +43,7 @@ class BaseOptions():
         parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
         parser.add_argument('--no_dropout', action='store_true', help='no dropout for the generator')
         # dataset parameters
-        parser.add_argument('--patches_per_width', type=int, default=2, help='Number of patches per width, if 4, than the image is dived into 16 patches')
+        parser.add_argument('--patches_per_width', type=int, default=1, help='Number of patches per width, if 4, than the image is dived into 16 patches')
         parser.add_argument('--dataset_mode', type=str, default='unaligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
         parser.add_argument('--direction', type=str, default='BtoA', help='AtoB or BtoA')
         parser.add_argument('--serial_batches', default = True, action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
