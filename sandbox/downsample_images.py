@@ -31,16 +31,18 @@ def pad_image_to_size(img, patch_size):
         pad_y2 = difference_y // 2
         if not difference_y % 2 == 0:
             pad_y2 += 1
-
-        i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2), (0, 0)), 'symmetric')
+        if len(img.shape)==3:
+            i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2), (0, 0)), 'symmetric')
+        elif len(img.shape)<3:
+            i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2)), 'symmetric')
         return i
     else:
         print("WARNING! Not implemented in laplacian_scaling")
 
 if __name__ == '__main__':
     patches_per_width = 1
-    root_dir = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_with_annotation/PAS/"
-    save_root_dir = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_with_annotation/PAS_small/"
+    root_dir = "/home/laurawenderoth/Documents/kidney_microscopy/data/control annotations 25-04-2022/"
+    save_root_dir = "/home/laurawenderoth/Documents/kidney_microscopy/data/data_with_annotation/annotations_small/"
 
 
     paths = glob.glob(root_dir + "*", recursive=True)
