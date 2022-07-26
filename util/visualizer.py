@@ -189,7 +189,7 @@ class Visualizer():
 
                     if self.use_wandb:
                         self.wandb_run.log({'validation '+key+' mean': metric_mean, 'validation '+key+' std':metric_std})
-
+    #TODO Redundanzen raussss!!!1 mit Validation abgleichen
     def log_evaluation_metrics(self,visuals):
         number_of_channels = self.opt.input_nc-1
         if ("real_A" and "fake_A") in visuals.keys():
