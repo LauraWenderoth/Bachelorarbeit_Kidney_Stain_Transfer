@@ -29,15 +29,18 @@ import random
 
 
 if __name__ == '__main__':
-    #determinism
-    seed = 0
+
+    #parser options
+    opt = TrainOptions().parse()   # get training options
+
+    # determinism
+    seed = opt.seed
     torch.backends.cudnn.benchmark = False
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
 
-
-    opt = TrainOptions().parse()   # get training options
+    #datasets
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     dataset_size = len(dataset)    # get the number of images in the dataset.
 

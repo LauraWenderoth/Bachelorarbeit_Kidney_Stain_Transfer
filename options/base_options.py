@@ -19,6 +19,7 @@ class BaseOptions():
     def initialize(self, parser):
         """Define the common options that are used in both training and test."""
         # basic parameters
+        parser.add_argument('--seed',type=int, default=0, help='select a seed to make it deterministic')
         parser.add_argument('--dataroot', default="/home/laurawenderoth/Documents/kidney_microscopy/data/for_testing", help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
         parser.add_argument('--name', type=str, default='', help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--use_wandb', default=True, help='use wandb')
@@ -41,14 +42,14 @@ class BaseOptions():
         parser.add_argument('--norm', type=str, default='batch', help='instance normalization or batch normalization [instance | batch | none]')
         parser.add_argument('--init_type', type=str, default='normal', help='network initialization [normal | xavier | kaiming | orthogonal]')
         parser.add_argument('--init_gain', type=float, default=0.02, help='scaling factor for normal, xavier and orthogonal.')
-        parser.add_argument('--no_dropout', action='store_true', help='no dropout for the generator')
+        parser.add_argument('--no_dropout', default=True, action='store_true', help='no dropout for the generator')
         # dataset parameters
         parser.add_argument('--patches_per_width', type=int, default=1, help='Number of patches per width, if 4, than the image is dived into 16 patches')
         parser.add_argument('--dataset_mode', type=str, default='unaligned', help='chooses how datasets are loaded. [unaligned | aligned | single | colorization]')
         parser.add_argument('--direction', type=str, default='BtoA', help='AtoB or BtoA')
         parser.add_argument('--serial_batches', default = True, action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
         parser.add_argument('--num_threads', default=4, type=int, help='# threads for loading data')
-        parser.add_argument('--batch_size', type=int, default=2, help='input batch size') #TODO 128
+        parser.add_argument('--batch_size', type=int, default=1, help='input batch size') #TODO 128
         parser.add_argument('--crop_size', type=int, default=256, help='then crop to this size')
         parser.add_argument('--max_dataset_size', type=int, default=float("inf"), help='Maximum number of samples allowed per dataset. If the dataset directory contains more than max_dataset_size, only a subset is loaded.')
         parser.add_argument('--preprocess', type=str, default='none', help='scaling and cropping of images at load time [resize_and_crop | crop | scale_width | scale_width_and_crop | none | laplacian]')
