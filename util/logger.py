@@ -117,10 +117,10 @@ class Logger():
 
         if self.use_wandb:
             if opt.name == "":
-                self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', config=opt,
+                self.wandb_run = wandb.init(project=opt.project, config=opt,
                                             entity=opt.entity) if not wandb.run else wandb.run
             else:
-                self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt,
+                self.wandb_run = wandb.init(project=opt.project, name=opt.name, config=opt,
                                             entity=opt.entity) if not wandb.run else wandb.run
             self.wandb_run._label(repo='CycleGAN-and-pix2pix')
 
