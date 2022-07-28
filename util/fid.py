@@ -207,4 +207,5 @@ def calculate_fid_given_images(images, batch_size, device, dims, num_workers=1):
                                         dims, device, num_workers)
     fid_value = calculate_frechet_distance(m1, s1, m2, s2)
 
+    del model
     return fid_value
