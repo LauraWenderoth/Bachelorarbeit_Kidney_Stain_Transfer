@@ -5,7 +5,7 @@ import numpy as np
 from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
-from util.visualizer import save_images,calculate_evaluation_metrices
+from util.logger import save_images,calculate_evaluation_metrices
 from util import html
 from util.util import downsampling,mkdir,tensor2im,save_image
 

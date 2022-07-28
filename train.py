@@ -21,7 +21,7 @@ import numpy as np
 from options.train_options import TrainOptions
 from data import create_dataset
 from models import create_model
-from util.visualizer import Visualizer
+from util.logger import Logger
 import numpy as np
 import torch
 import random
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
-    visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
+    visualizer = Logger(opt)   # create a visualizer that display/save images and plots
     total_iters = 0                # the total number of training iterations
 
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                 losses = model.get_current_losses()
                 t_comp = (time.time() - iter_start_time) / opt.batch_size
                 visualizer.print_current_losses(epoch, epoch_iter, losses, t_comp, t_data)
-                visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
+                visualizer.plot_current_losses(epoch, losses)
                 model.compute_visuals()
                 visuals = model.get_current_visuals()
                 visualizer.log_evaluation_metrics(opt,state = 'train',visuals=visuals)

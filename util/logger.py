@@ -95,7 +95,7 @@ def calculate_evaluation_metrices(visuals, opt):
     return evaluation_metrics
 
 
-class Visualizer():
+class Logger():
     """This class includes several functions that can display/save images and print/save logging information.
     It uses a Python library 'visdom' for display, and a Python library 'dominate' (wrapped in 'HTML') for creating HTML files with images.
     """
@@ -158,11 +158,10 @@ class Visualizer():
                 result_table.add_data(*table_row)
                 self.wandb_run.log({"Result": result_table})
 
-    def plot_current_losses(self, epoch, counter_ratio, losses):
+    def plot_current_losses(self, epoch, losses):
         """display the current losses on visdom display: dictionary of error labels and values
         Parameters:
             epoch (int)           -- current epoch
-            counter_ratio (float) -- progress (percentage) in the current epoch, between 0 to 1
             losses (OrderedDict)  -- training losses stored in the format of (name, float) pairs
         """
         if self.use_wandb:
@@ -170,6 +169,14 @@ class Visualizer():
             self.wandb_run.log({'Epoch': epoch})
 
     def log_evaluation_metrics(self, opt, state, model=None, val_dataset=None, visuals=None):
+        """log evaluation metrics at W&B
+               Parameters:
+                   opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
+                   state (String) -- indicates, if metrices should be stored with flag val or train
+                   model (Model) -- a model to calculate the visuals is needed
+                   val_Dataset (Dataset) -- a Dataset, that contains all images
+                   visuals (OrderedDict) - - dictionary of images to display or save
+               """
         evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'MSE_B': [], 'MSE_A': [], 'SSMI_A channel 0': [],
                               'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
                               'SSMI_B channel 1': [],
@@ -177,7 +184,7 @@ class Visualizer():
                               'MSE_A channel 2': [],
                               'MSE_B channel 0': [], 'MSE_B channel 1': [], 'MSE_B channel 2': [], 'FID_A': [],
                               'FID_B': []}
-        if val_dataset and model != None:
+        if val_dataset and model is not None:
             if opt.phase == "val":
                 for i, data in enumerate(val_dataset):
                     model.set_input(data)
@@ -186,7 +193,7 @@ class Visualizer():
                     evaluation_metrics_for_one_image = calculate_evaluation_metrices(visuals, opt)
                     for key in evaluation_metrics_for_one_image.keys():
                         evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
-        elif visuals != None:
+        elif visuals is not None:
             evaluation_metrics_for_one_image = calculate_evaluation_metrices(visuals, opt)
             for key in evaluation_metrics_for_one_image.keys():
                 evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
