@@ -9,4 +9,7 @@ RUN apt-get update \
 #  && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 git gcc openslide-tools python-openslide -y \
   && pip install -U pip setuptools wheel \
   && pip install --no-cache-dir -r /requirements.txt \
-  && apt-get install ffmpeg libsm6 libxext6  -y
+  && pip install scikit-image \
+  && pip install opencv-python \
+  && apt-get update \
+  && apt-get install ffmpeg libsm6 libxext6  -y \
