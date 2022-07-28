@@ -6,6 +6,7 @@ import time
 from . import util
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
+from util.fid import calculate_fid_given_images
 
 try:
     import wandb
@@ -18,7 +19,7 @@ else:
     VisdomExceptionBase = ConnectionError
 
 
-def save_images(save_path, visuals, image_path, aspect_ratio=1.0, use_wandb=True): #Normal use_wandb=False
+def save_images(save_path, visuals, image_path, aspect_ratio=1.0, use_wandb=True):  # Normal use_wandb=False
     """Save images to the disk.
     Parameters:
         webpage (the HTML class) -- the HTML webpage class that stores these imaegs (see html.py for more details)
@@ -47,47 +48,52 @@ def save_images(save_path, visuals, image_path, aspect_ratio=1.0, use_wandb=True
     if use_wandb:
         wandb.log(ims_dict)
 
-#Für ein Bild(paar) nicht für einen ganzen Satz bilder
-def calculate_evaluation_metrics(visuals,opt):
+
+def calculate_evaluation_metrices(visuals, opt):
+    """Calculates vor a pair of images (visuals) all evaluation metrices: MSE, SSMI, FID
+        Parameters:
+            visuals (OrderedDict)    -- an ordered dictionary that stores (name, images (either tensor or numpy) ) pairs
+            opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
+        This function will return all evaluation metrices as a dict.
+        """
     evaluation_metrics = {}
     number_of_channels = opt.input_nc - 1
-    domains = ['A','B']
-    # if ("real_A" and "fake_A") in visuals.keys():
-    #     real = visuals["real_A"]
-    #     fake = visuals["fake_A"]
-    #     real = util.tensor2im(real)
-    #     fake = util.tensor2im(fake)
-    #     multichannel = number_of_channels > 1
-    #     ssim_value = ssim(real, fake, gaussian_weights=True, multichannel=multichannel, channel_axis=number_of_channels)
-    #     mse_value = mse(real, fake)
-    #     evaluation_metrics["SSMI_A"]=ssim_value
-    #     evaluation_metrics["SSMI_A R channel"] = 0
-    #     evaluation_metrics["SSMI_A G channel"] =0
-    #     evaluation_metrics["SSMI_A B channel"] =0
-    #     evaluation_metrics["MSE_A"] = mse_value
+    domains = ['A', 'B']
     for domain in domains:
-        if ("real_"+domain and "fake_"+domain) in visuals.keys():
-            real = visuals["real_"+domain]
-            fake = visuals["fake_"+domain]
+        if ("real_" + domain and "fake_" + domain) in visuals.keys():
+            real = visuals["real_" + domain]
+            fake = visuals["fake_" + domain]
             real = util.tensor2im(real)
             fake = util.tensor2im(fake)
-            multichannel = number_of_channels>1
-            ssim_value = ssim(real, fake, gaussian_weights=True, multichannel=multichannel ,channel_axis=number_of_channels)
-            evaluation_metrics["SSMI_"+domain] = ssim_value
-            mse_value = mse(real, fake)
-            evaluation_metrics["MSE_"+domain] = mse_value
 
-            #channelwise
+            # normalise images
+            if real.max() > 0:
+                real = real / real.max()
+            if fake.max() > 0:
+                fake = fake / fake.max()
+
+            multichannel = number_of_channels > 1
+            ssim_value = ssim(real, fake, gaussian_weights=True, multichannel=multichannel,
+                              channel_axis=number_of_channels)
+            evaluation_metrics["SSMI_" + domain] = ssim_value
+            mse_value = mse(real, fake)
+            evaluation_metrics["MSE_" + domain] = mse_value
+            fid_value = calculate_fid_given_images([[real], [fake]], batch_size=1, device=0, dims=2048)
+            evaluation_metrics["FID_" + domain] = fid_value
+            # channelwise
             if multichannel:
                 for i in range(3):
-                   real_channel = real[:,:,i]
-                   fake_channel = fake[:,:,i]
-                   ssim_value = ssim(real_channel, fake_channel, gaussian_weights=True, multichannel=False)
-                   mse_value = mse(real_channel, fake_channel)
-                   evaluation_metrics["SSMI_"+domain+" channel "+str(i)] = ssim_value
-                   evaluation_metrics["MSE_"+domain+" channel " + str(i)] = mse_value
+                    real_channel = real[:, :, i]
+                    fake_channel = fake[:, :, i]
+                    ssim_value = ssim(real_channel, fake_channel, gaussian_weights=True, multichannel=False)
+                    mse_value = mse(real_channel, fake_channel)
+                    # fid_value = calculate_fid_given_images([[real_channel], [fake_channel]], batch_size=1, device=0, dims=2048)
+                    evaluation_metrics["SSMI_" + domain + " channel " + str(i)] = ssim_value
+                    evaluation_metrics["MSE_" + domain + " channel " + str(i)] = mse_value
+                    # evaluation_metrics["FID_" + domain + " channel " + str(i)] = fid_value
 
     return evaluation_metrics
+
 
 class Visualizer():
     """This class includes several functions that can display/save images and print/save logging information.
@@ -114,7 +120,8 @@ class Visualizer():
                 self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', config=opt,
                                             entity=opt.entity) if not wandb.run else wandb.run
             else:
-                self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt,entity=opt.entity) if not wandb.run else wandb.run
+                self.wandb_run = wandb.init(project='CycleGAN-and-pix2pix', name=opt.name, config=opt,
+                                            entity=opt.entity) if not wandb.run else wandb.run
             self.wandb_run._label(repo='CycleGAN-and-pix2pix')
 
         # create a logging file to store training losses
@@ -123,12 +130,9 @@ class Visualizer():
             now = time.strftime("%c")
             log_file.write('================ Training Loss (%s) ================\n' % now)
 
-
     def reset(self):
         """Reset the self.saved status"""
         self.saved = False
-
-
 
     def save_current_results_wandb(self, visuals, epoch):
         """Display current results on visdom; save current results to an HTML file.
@@ -139,7 +143,7 @@ class Visualizer():
         """
         if self.use_wandb:
             columns = [key for key, _ in visuals.items()]
-            columns.insert(0,'epoch')
+            columns.insert(0, 'epoch')
             result_table = wandb.Table(columns=columns)
             table_row = [epoch]
             ims_dict = {}
@@ -163,56 +167,46 @@ class Visualizer():
         """
         if self.use_wandb:
             self.wandb_run.log(losses)
-            self.wandb_run.log({'Epoch':epoch})
+            self.wandb_run.log({'Epoch': epoch})
 
+    def log_evaluation_metrics(self, opt, state, model=None, val_dataset=None, visuals=None):
+        evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'MSE_B': [], 'MSE_A': [], 'SSMI_A channel 0': [],
+                              'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
+                              'SSMI_B channel 1': [],
+                              'SSMI_B channel 2': [], 'MSE_A channel 0': [], 'MSE_A channel 1': [],
+                              'MSE_A channel 2': [],
+                              'MSE_B channel 0': [], 'MSE_B channel 1': [], 'MSE_B channel 2': [], 'FID_A': [],
+                              'FID_B': []}
+        if val_dataset and model != None:
+            if opt.phase == "val":
+                for i, data in enumerate(val_dataset):
+                    model.set_input(data)
+                    model.compute_visuals()
+                    visuals = model.get_current_visuals()
+                    evaluation_metrics_for_one_image = calculate_evaluation_metrices(visuals, opt)
+                    for key in evaluation_metrics_for_one_image.keys():
+                        evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
+        elif visuals != None:
+            evaluation_metrics_for_one_image = calculate_evaluation_metrices(visuals, opt)
+            for key in evaluation_metrics_for_one_image.keys():
+                evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
+        else:
+            print('No images to calculate evaluation metrics or no model given')
 
-
-    def log_validation_metrics(self,opt,model,val_dataset):
-        if opt.phase == "val":
-            evaluation_metrics = {'SSMI_A':[],'SSMI_B':[],'MSE_B':[],'MSE_A':[],'SSMI_A channel 0':[],
-                                  'SSMI_A channel 1':[],'SSMI_A channel 2':[],'SSMI_B channel 0':[],'SSMI_B channel 1':[],
-                                  'SSMI_B channel 2':[],'MSE_A channel 0':[],'MSE_A channel 1':[],'MSE_A channel 2':[],
-                                  'MSE_B channel 0':[],'MSE_B channel 1':[],'MSE_B channel 2':[]}
-            for i, data in enumerate(val_dataset):
-                model.set_input(data)
-                model.compute_visuals()
-                visuals = model.get_current_visuals()
-                evaluation_metrics_for_one_image = calculate_evaluation_metrics(visuals,opt)
-                for key in evaluation_metrics_for_one_image.keys():
-                    evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
-            for key in evaluation_metrics.keys():
-                if len(evaluation_metrics[key]) > 0:  # evaluation_metrics[key] soll eine lisste sein
-                    #key ist ein string
-                    metric = np.array(evaluation_metrics[key])
-                    metric_mean = metric.mean()
+        # log the metrics in weight and biases
+        for key in evaluation_metrics.keys():
+            if len(evaluation_metrics[key]) > 0:
+                metric = np.array(evaluation_metrics[key])
+                metric_mean = metric.mean()
+                if len(evaluation_metrics[key]) > 1:
                     metric_std = metric.std()
-
                     if self.use_wandb:
-                        self.wandb_run.log({'validation '+key+' mean': metric_mean, 'validation '+key+' std':metric_std})
-    #TODO Redundanzen raussss!!!1 mit Validation abgleichen
-    def log_evaluation_metrics(self,visuals):
-        number_of_channels = self.opt.input_nc-1
-        if ("real_A" and "fake_A") in visuals.keys():
-            real = visuals["real_A"]
-            fake = visuals["fake_A"]
-            real = util.tensor2im(real)
-            fake = util.tensor2im(fake)
-            ssim_value = ssim(real, fake, gaussian_weights=True, channel_axis=number_of_channels)
-            mse_value = mse(real,fake)
-            if self.use_wandb:
-                self.wandb_run.log({'train SSMI_A': ssim_value, 'train MSE_A': mse_value})
-        if ("real_B" and "fake_B") in visuals.keys():
-            real = visuals["real_B"]
-            fake = visuals["fake_B"]
-            real = util.tensor2im(real)
-            fake = util.tensor2im(fake)
-            ssim_value = ssim(real, fake, gaussian_weights=True, multichannel=True,channel_axis=number_of_channels)
-            mse_value = mse(real, fake)
-            #TODO FID
-            if self.use_wandb:
-                self.wandb_run.log({'train SSMI_B': ssim_value, 'train MSE_B': mse_value})
+                        self.wandb_run.log(
+                            {state + ' ' + key + ' mean': metric_mean, state + ' ' + key + ' std': metric_std})
+                else:
+                    if self.use_wandb:
+                        self.wandb_run.log({state + ' ' + key + ' mean': metric_mean})
 
-    # losses: same format as |losses| of plot_current_losses
     def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
         """print current losses on console; also save the losses to the disk
         Parameters:

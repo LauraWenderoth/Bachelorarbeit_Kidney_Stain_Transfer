@@ -107,3 +107,7 @@ def downsampling(img, patch_size):
         gaussian_pyr.append(np.float32(lower))
     g = gaussian_pyr[-1]
     return g.astype(np.uint8)
+
+
+
+

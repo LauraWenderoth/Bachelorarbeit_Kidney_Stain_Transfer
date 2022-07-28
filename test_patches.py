@@ -5,7 +5,7 @@ import numpy as np
 from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
-from util.visualizer import save_images,calculate_evaluation_metrics
+from util.visualizer import save_images,calculate_evaluation_metrices
 from util import html
 from util.util import downsampling,mkdir,tensor2im,save_image
 
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         img_path = model.get_image_paths()     # get image paths
         save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
                     use_wandb=opt.use_wandb)
-        evaluation_metrics = calculate_evaluation_metrics(visuals,opt)
+        evaluation_metrics = calculate_evaluation_metrices(visuals, opt)
         if opt.patches_per_width != 1:
             for key in visuals.keys():
                 patch = visuals[key]

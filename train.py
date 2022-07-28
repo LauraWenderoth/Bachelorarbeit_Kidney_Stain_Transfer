@@ -82,14 +82,15 @@ if __name__ == '__main__':
                 visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, losses)
                 model.compute_visuals()
                 visuals = model.get_current_visuals()
-                visualizer.log_evaluation_metrics(visuals)
+                visualizer.log_evaluation_metrics(opt,state = 'train',visuals=visuals)
 
 
             if total_iters % opt.save_latest_freq == 0:   # cache our latest model every <save_latest_freq> iterations
                 print('saving the latest model (epoch %d, total_iters %d)' % (epoch, total_iters))
                 save_suffix = 'iter_%d' % total_iters if opt.save_by_iter else 'latest'
                 model.save_networks(save_suffix)
-                visualizer.log_validation_metrics(opt,model,val_dataset)
+
+                visualizer.log_evaluation_metrics(opt,state='val',model=model,val_dataset=val_dataset)
 
             iter_data_time = time.time()
         if epoch % opt.save_epoch_freq == 0:              # cache our model every <save_epoch_freq> epochs
