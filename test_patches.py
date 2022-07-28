@@ -1,20 +1,19 @@
-import os
-
 import numpy as np
 
 from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
-from util.logger import save_images,calculate_evaluation_metrices
-from util import html
-from util.util import downsampling,mkdir,tensor2im,save_image
+from util.logger import save_images, calculate_evaluation_metrices
+
+from util.util import mkdir, tensor2im, save_image
 
 try:
     import wandb
 except ImportError:
     print('Warning: wandb package cannot be found. The option "--use_wandb" will result in error.')
 
-def put_image_together(image,patch,index,patches_per_width):
+
+def put_image_together(image, patch, index, patches_per_width):
     patch = tensor2im(patch)
     patch_index = index % patches_per_width ** 2
     x = patch_index // patches_per_width
@@ -26,18 +25,19 @@ def put_image_together(image,patch,index,patches_per_width):
 if __name__ == '__main__':
     opt = TestOptions().parse()  # get test options
     # hard-code some parameters for test
-    opt.num_threads = 0   # test code only supports num_threads = 0
-    opt.batch_size = 1    # test code only supports batch_size = 1
+    opt.num_threads = 0  # test code only supports num_threads = 0
+    opt.batch_size = 1  # test code only supports batch_size = 1
     opt.serial_batches = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
-    opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
-    opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
+    opt.no_flip = True  # no flip; comment this line if results on flipped images are needed.
+    opt.display_id = -1  # no visdom display; the test code saves the results to a HTML file.
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
-    model = create_model(opt)      # create a model given opt.model and other options
-    model.setup(opt)               # regular setup: load and print networks; create schedulers
+    model = create_model(opt)  # create a model given opt.model and other options
+    model.setup(opt)  # regular setup: load and print networks; create schedulers
 
     # initialize logger
     if opt.use_wandb:
-        wandb_run = wandb.init(project='CycleGAN-and-pix2pix_results', name=opt.name, config=opt,entity=opt.entity) if not wandb.run else wandb.run
+        wandb_run = wandb.init(project='CycleGAN-and-pix2pix_results', name=opt.name, config=opt,
+                               entity=opt.entity) if not wandb.run else wandb.run
         wandb_run._label(repo='CycleGAN-and-pix2pix_results')
 
     if opt.eval:
@@ -52,30 +52,30 @@ if __name__ == '__main__':
     for patch_index, data in enumerate(dataset):
 
         model.set_input(data)  # unpack data from data loader
-        model.test()           # run inference
+        model.test()  # run inference
         visuals = model.get_current_visuals()  # get image results
 
         # zusamensetzen der patches
         if patch_index == 0 and opt.patches_per_width != 1:
             for key in visuals.keys():
-                key = key +" merged"
-                images[key] = (np.zeros((256*opt.patches_per_width,256*opt.patches_per_width,3)))
+                key = key + " merged"
+                images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
         elif patch_index % number_of_patches == 0 and opt.patches_per_width != 1:
             image_name = img_path[0].split("/")[-1]
             image_name = image_name.split(".")[0][:-3]
             for key in images.keys():
                 image = images[key]
-                image = np.array(image,dtype=np.uint8)
+                image = np.array(image, dtype=np.uint8)
                 ims_dict[key] = wandb.Image(image)
-                save_image(image, save_path+"/"+image_name+key+"all.png")
+                save_image(image, save_path + "/" + image_name + key + "all.png")
                 images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
             if opt.use_wandb:
                 wandb.log(ims_dict)
 
-        if patch_index >= opt.num_test*number_of_patches:  # only apply our model to opt.num_test images.
+        if patch_index >= opt.num_test * number_of_patches:  # only apply our model to opt.num_test images.
             break
 
-        img_path = model.get_image_paths()     # get image paths
+        img_path = model.get_image_paths()  # get image paths
         save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
                     use_wandb=opt.use_wandb)
         evaluation_metrics = calculate_evaluation_metrices(visuals, opt)
