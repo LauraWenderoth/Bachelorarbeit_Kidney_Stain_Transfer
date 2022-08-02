@@ -111,11 +111,13 @@ class Pix2PixModel(BaseModel):
             r_fake = self.fake_B.clone()
             r_real[:,0] =torch.mul(r_real[:,0], weight)
             r_fake[:,0] = torch.mul(r_fake[:,0], weight)
-            self.real_B = r_real
-            self.fake_B = r_fake
+        else:
+            r_real =self.real_B
+            r_fake = self.fake_B
 
 
-        self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
+        self.loss_G_L1 = self.criterionL1(r_fake, r_real) * self.opt.lambda_L1
+        # self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
         # combine loss and calculate gradients
         self.loss_G = self.loss_G_GAN + self.loss_G_L1
         self.loss_G.backward()

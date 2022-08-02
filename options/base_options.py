@@ -24,11 +24,11 @@ class BaseOptions():
                             help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--use_wandb', default = True , action='store_true', help='use wandb')
         parser.add_argument('--entity', default="laurawenderoth", help='Entity of the wandb project, only if you use w&b')
-        parser.add_argument('--project',default="CycleGAN-and-pix2pix-experiments",help='Name of the wandb project')
+        parser.add_argument('--project',default="CycleGAN-and-pix2pix-results",help='Name of the wandb project')
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--seed',type=int, default=0, help='select a seed to make it deterministic')
-        parser.add_argument('--load_path', type=str, default="/home/laurawenderoth/Documents/kidney_microscopy/CycleGanPytorch/checkpoints/checkpoints_pix2pix_128_batchsize_1_patch_perwidth/150_net_G.pth",
+        parser.add_argument('--load_path', type=str, default="/home/laurawenderoth/Documents/kidney_microscopy/data/for_testing/200_net_G.pth",
                             help='path to state dict, if empty /checkpoints/latest_net_G.pth is used')
         # model parameters
         parser.add_argument('--model', type=str, default='pix2pix', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')

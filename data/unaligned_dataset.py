@@ -39,6 +39,7 @@ class UnalignedDataset(BaseDataset):
         self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
         self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
         self.patches_per_width = opt.patches_per_width
+        self.opt = opt
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
@@ -79,11 +80,30 @@ class UnalignedDataset(BaseDataset):
         # convert to PIL
         A = Image.fromarray(A)
         B = Image.fromarray(B)
+
+        # Data Augmentation
+
+        random_flip = random.uniform(0,1)
+
+        if random_flip <0.5:
+            transform =  transforms.functional.hflip
+
+            A = transform(A)
+            B = transform(B)
+        if random_flip >0.25 and random_flip < 0.75:
+            transform = transforms.functional.vflip
+            A = transform(A)
+            B = transform(B)
+
+        # transform = transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+        # if self.opt.direction == "AtoB":
+        #     A = transform(A)
+        # else:
+        #     B = transform(B)
         # apply image transformation
-        transform = transforms.ToTensor()
+
         A = self.transform_A(A)
         B = self.transform_B(B)
-        # print(A.shape)
 
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
 
