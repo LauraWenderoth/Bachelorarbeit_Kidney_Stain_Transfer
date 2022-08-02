@@ -95,7 +95,7 @@ class UnalignedDataset(BaseDataset):
             A = transform(A)
             B = transform(B)
 
-        transform = transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+        transform = transforms.ColorJitter(brightness=0.5, contrast=0.05, saturation=0.01, hue=0.01)
         if self.opt.direction == "AtoB":
             A = transform(A)
         else:
