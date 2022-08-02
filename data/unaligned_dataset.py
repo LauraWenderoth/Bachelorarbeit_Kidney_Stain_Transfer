@@ -95,11 +95,11 @@ class UnalignedDataset(BaseDataset):
             A = transform(A)
             B = transform(B)
 
-        # transform = transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
-        # if self.opt.direction == "AtoB":
-        #     A = transform(A)
-        # else:
-        #     B = transform(B)
+        transform = transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+        if self.opt.direction == "AtoB":
+            A = transform(A)
+        else:
+            B = transform(B)
         # apply image transformation
 
         A = self.transform_A(A)
