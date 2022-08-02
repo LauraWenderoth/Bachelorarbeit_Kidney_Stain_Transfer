@@ -1,11 +1,13 @@
 import os
 import torch
 from collections import OrderedDict
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from . import networks
+import torch.nn as nn
 
 
-class BaseModel(ABC):
+# class BaseModel(ABC):
+class BaseModel(nn.Module):
     """This class is an abstract base class (ABC) for models.
     To create a subclass, you need to implement the following five functions:
         -- <__init__>:                      initialize the class; first call BaseModel.__init__(self, opt).
@@ -27,6 +29,7 @@ class BaseModel(ABC):
             -- self.visual_names (str list):        specify the images that you want to display and save.
             -- self.optimizers (optimizer list):    define and initialize optimizers. You can define one optimizer for each network. If two networks are updated at the same time, you can use itertools.chain to group them. See cycle_gan_model.py for an example.
         """
+        super(BaseModel, self).__init__()
         self.opt = opt
         self.gpu_ids = opt.gpu_ids
         self.isTrain = opt.isTrain
@@ -41,6 +44,8 @@ class BaseModel(ABC):
         self.image_paths = []
         self.metric = 0  # used for learning rate policy 'plateau'
         self.load_path= opt.load_path
+
+
 
     @staticmethod
     def modify_commandline_options(parser, is_train):

@@ -24,7 +24,7 @@ class Pix2PixModel(BaseModel):
         By default, we use vanilla GAN loss, UNet with batchnorm, and aligned datasets.
         """
         # changing the default values to match the pix2pix paper (https://phillipi.github.io/pix2pix/)
-        parser.set_defaults(norm='batch', netG='unet_256') #, dataset_mode='aligned'
+        parser.set_defaults(norm='batch', netG='unet_256')
         if is_train:
             parser.set_defaults(pool_size=0, gan_mode='vanilla')
             parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
@@ -64,6 +64,8 @@ class Pix2PixModel(BaseModel):
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
 
+
+
     def set_input(self, input):
         """Unpack input data from the dataloader and perform necessary pre-processing steps.
         Parameters:
@@ -78,6 +80,7 @@ class Pix2PixModel(BaseModel):
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
         self.fake_B = self.netG(self.real_A)  # G(A)
+
 
     def backward_D(self):
         """Calculate GAN loss for the discriminator"""
@@ -100,6 +103,18 @@ class Pix2PixModel(BaseModel):
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
         # Second, G(A) = B
+        if self.opt.direction == 'BtoA': # to reduce impact of the R Channel of the IF image
+            # TODO Reduction of R Channel (0) of the IF image (IF A is IF)
+            # set weight:
+            weight = torch.tensor(self.opt.weight_for_R_channel)
+            r_real = self.real_B.clone()
+            r_fake = self.fake_B.clone()
+            r_real[:,0] =torch.mul(r_real[:,0], weight)
+            r_fake[:,0] = torch.mul(r_fake[:,0], weight)
+            self.real_B = r_real
+            self.fake_B = r_fake
+
+
         self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
         # combine loss and calculate gradients
         self.loss_G = self.loss_G_GAN + self.loss_G_L1
