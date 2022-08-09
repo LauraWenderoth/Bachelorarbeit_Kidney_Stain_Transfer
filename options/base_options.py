@@ -28,7 +28,7 @@ class BaseOptions():
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--seed',type=int, default=0, help='select a seed to make it deterministic')
-        parser.add_argument('--load_path', type=str, default="/home/laurawenderoth/Documents/kidney_microscopy/data/for_testing/200_net_G.pth",
+        parser.add_argument('--load_path', type=str, default="/home/laurawenderoth/Documents/Bachelorarbeit/results/checkpoints/run_with_data_augmentation/pix2pix_PAS2IF_1_patches_seed_0/5_net_G.pth",
                             help='path to state dict, if empty /checkpoints/latest_net_G.pth is used')
         # model parameters
         parser.add_argument('--model', type=str, default='pix2pix', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')

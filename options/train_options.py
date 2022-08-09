@@ -30,6 +30,10 @@ class TrainOptions(BaseOptions):
         #
         parser.add_argument('--weight_for_R_channel', type=int, default=0.1,
                             help='R channel is multiplied by weight before calculatin L1 loss')
+        parser.add_argument('--weight_for_G_channel', type=int, default=0.1,
+                            help='R channel is multiplied by weight before calculatin L1 loss')
+        parser.add_argument('--weight_for_B_channel', type=int, default=0.1,
+                            help='R channel is multiplied by weight before calculatin L1 loss')
 
         self.isTrain = True
         return parser

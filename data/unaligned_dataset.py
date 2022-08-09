@@ -82,26 +82,26 @@ class UnalignedDataset(BaseDataset):
         B = Image.fromarray(B)
 
         # Data Augmentation
+        if self.opt.isTrain:
+            random_flip = random.uniform(0,1)
 
-        random_flip = random.uniform(0,1)
+            if random_flip <0.5:
+                transform =  transforms.functional.hflip
 
-        if random_flip <0.5:
-            transform =  transforms.functional.hflip
+                A = transform(A)
+                B = transform(B)
+            if random_flip >0.25 and random_flip < 0.75:
+                transform = transforms.functional.vflip
+                A = transform(A)
+                B = transform(B)
 
-            A = transform(A)
-            B = transform(B)
-        if random_flip >0.25 and random_flip < 0.75:
-            transform = transforms.functional.vflip
-            A = transform(A)
-            B = transform(B)
+            # transform = transforms.ColorJitter(brightness=0.5, contrast=0.05, saturation=0.01, hue=0.01)
+            # if self.opt.direction == "AtoB":
+            #     A = transform(A)
+            # else:
+            #     B = transform(B)
 
-        transform = transforms.ColorJitter(brightness=0.5, contrast=0.05, saturation=0.01, hue=0.01)
-        if self.opt.direction == "AtoB":
-            A = transform(A)
-        else:
-            B = transform(B)
         # apply image transformation
-
         A = self.transform_A(A)
         B = self.transform_B(B)
 
