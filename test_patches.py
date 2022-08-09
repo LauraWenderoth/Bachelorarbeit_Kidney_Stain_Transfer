@@ -49,7 +49,15 @@ if __name__ == '__main__':
     images = {}
 
     ims_dict = {}
-    # logger.log_evaluation_metrics(opt=opt, state="test", model=model, val_dataset=dataset)
+
+    evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'MSE_B': [], 'MSE_A': [], 'SSMI_A channel 0': [],
+                          'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
+                          'SSMI_B channel 1': [],
+                          'SSMI_B channel 2': [], 'MSE_A channel 0': [], 'MSE_A channel 1': [],
+                          'MSE_A channel 2': [],
+                          'MSE_B channel 0': [], 'MSE_B channel 1': [], 'MSE_B channel 2': [], 'FID_A': [],
+                          'FID_B': []}
+
     for patch_index, data in enumerate(dataset):
 
         model.set_input(data)  # unpack data from data loader
@@ -79,12 +87,28 @@ if __name__ == '__main__':
         img_path = model.get_image_paths()  # get image paths
         save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
                     use_wandb=opt.use_wandb)
-        logger.log_evaluation_metrics(opt=opt,state="test",visuals=visuals)
+        evaluation_metrics_for_one_image = logger.log_evaluation_metrics(opt=opt,state="test",visuals=visuals)
+        for key in evaluation_metrics_for_one_image.keys():
+            evaluation_metrics[key].extend(evaluation_metrics_for_one_image[key])
         if opt.patches_per_width != 1:
             for key in visuals.keys():
                 patch = visuals[key]
                 key = key + " merged"
                 put_image_together(images[key], patch, patch_index, opt.patches_per_width)
+
+    # log the metrics in weight and biases
+    for key in evaluation_metrics.keys():
+        if len(evaluation_metrics[key]) > 0:
+            metric = np.array(evaluation_metrics[key])
+            metric_mean = metric.mean()
+            if len(evaluation_metrics[key]) > 1:
+                metric_std = metric.std()
+                if opt.use_wandb:
+                    wandb.log(
+                        {"test" + ' ' + key + ' mean': metric_mean, 'test' + ' ' + key + ' std': metric_std})
+            else:
+                if opt.use_wandb:
+                    wandb.log({'test' + ' ' + key + ' mean': metric_mean})
 
 
 
