@@ -212,7 +212,8 @@ class Logger():
                             {state + ' ' + key + ' mean': metric_mean, state + ' ' + key + ' std': metric_std})
                 else:
                     if self.use_wandb:
-                        self.wandb_run.log({state + ' ' + key + ' mean': metric_mean})
+                        self.wandb_run.log({state + ' ' + key : metric_mean})
+        return evaluation_metrics
 
     def print_current_losses(self, epoch, iters, losses, t_comp, t_data):
         """print current losses on console; also save the losses to the disk
