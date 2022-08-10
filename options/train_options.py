@@ -30,7 +30,7 @@ class TrainOptions(BaseOptions):
         #
         parser.add_argument('--weight_for_L1_loss', metavar=('R','G','B'),  type=float, nargs=3, default=[0.1,2,5],
                             help='[R,G,B] channel is multiplied by weight before calculation of L1 loss')
-        parser.add_argument('--reset_L1_loss', type=list, default=[1,1,1],
+        parser.add_argument('--reset_L1_loss', metavar=('R','G','B'),  type=float, nargs=3, default=[1,1,1],
                             help='reset [R,G,B]  for the time in which the learning rate linearly decreases to zero')
 
         self.isTrain = True
