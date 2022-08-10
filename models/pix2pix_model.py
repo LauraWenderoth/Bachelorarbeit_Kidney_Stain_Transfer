@@ -106,14 +106,12 @@ class Pix2PixModel(BaseModel):
         if self.opt.direction == 'BtoA': # to reduce impact of the R Channel of the IF image
             # TODO Reduction of R Channel (0) of the IF image (IF A is IF)
             # set weight:
+            weight = self.opt.weight_for_L1_loss
             r_real = self.real_B.clone()
             r_fake = self.fake_B.clone()
-            r_real[:,0] =torch.mul(r_real[:,0], torch.tensor(self.opt.weight_for_R_channel))
-            r_fake[:,0] = torch.mul(r_fake[:,0], torch.tensor(self.opt.weight_for_R_channel))
-            r_real[:, 1] = torch.mul(r_real[:, 1], torch.tensor(self.opt.weight_for_G_channel))
-            r_fake[:, 1] = torch.mul(r_fake[:, 1], torch.tensor(self.opt.weight_for_G_channel))
-            r_real[:, 2] = torch.mul(r_real[:, 2], torch.tensor(self.opt.weight_for_B_channel))
-            r_fake[:, 2] = torch.mul(r_fake[:, 2], torch.tensor(self.opt.weight_for_B_channel))
+            for i in range(3):
+                r_real[:,i] =torch.mul(r_real[:,i], torch.tensor(weight[i]))
+                r_fake[:,i] = torch.mul(r_fake[:,i], torch.tensor(weight[i]))
         else:
             r_real =self.real_B
             r_fake = self.fake_B

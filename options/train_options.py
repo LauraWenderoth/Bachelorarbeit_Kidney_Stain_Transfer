@@ -28,12 +28,10 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--lr_policy', type=str, default='linear', help='learning rate policy. [linear | step | plateau | cosine]')
         parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
         #
-        parser.add_argument('--weight_for_R_channel', type=float, default=0.1,
-                            help='R channel is multiplied by weight before calculatin L1 loss')
-        parser.add_argument('--weight_for_G_channel', type=float, default=0.1,
-                            help='R channel is multiplied by weight before calculatin L1 loss')
-        parser.add_argument('--weight_for_B_channel', type=float, default=0.1,
-                            help='R channel is multiplied by weight before calculatin L1 loss')
+        parser.add_argument('--weight_for_L1_loss', type=list, default=[1,1,1],
+                            help='[R,G,B] channel is multiplied by weight before calculation of L1 loss')
+        parser.add_argument('--reset_L1_loss', type=list, default=[1,1,1],
+                            help='reset [R,G,B]  for the time in which the learning rate linearly decreases to zero')
 
         self.isTrain = True
         return parser
