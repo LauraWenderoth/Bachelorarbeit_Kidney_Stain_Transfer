@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
         #the weights from the L1 loss are set to 1, for the time in which the learning rate linearly decreases to zero
         if opt.n_epochs == epoch:
-            opt.weight_L1_loss = opt.reset_L1_loss
+            opt.weight_for_L1_loss = opt.reset_L1_loss
 
 
 
