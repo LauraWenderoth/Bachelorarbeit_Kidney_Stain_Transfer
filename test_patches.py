@@ -72,11 +72,15 @@ if __name__ == '__main__':
         elif patch_index % number_of_patches == 0 and opt.patches_per_width != 1:
             image_name = img_path[0].split("/")[-1]
             image_name = image_name.split(".")[0][:-3]
+
             for key in images.keys():
                 image = images[key]
                 image = np.array(image, dtype=np.uint8)
                 ims_dict[key] = wandb.Image(image)
-                save_image(image, save_path + "/" + image_name + key + "all.png")
+                save_path_merged = os.path.join(save_path, key)
+                if not os.path.exists(save_path_merged):
+                    os.makedirs(save_path_merged)
+                save_image(image, save_path_merged + "/" + image_name + key + "all.png")
                 images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
             if opt.use_wandb:
                 wandb.log(ims_dict)
