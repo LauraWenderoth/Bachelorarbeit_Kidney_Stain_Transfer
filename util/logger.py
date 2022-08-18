@@ -38,7 +38,10 @@ def save_images(save_path, visuals, image_path, aspect_ratio=1.0, use_wandb=True
     for label, im_data in visuals.items():
         im = util.tensor2im(im_data)
         image_name = '%s_%s.png' % (name, label)
-        save_path = os.path.join(image_dir, image_name)
+        image_dir_label = os.path.join(image_dir, label)
+        save_path = os.path.join(image_dir_label, image_name)
+        if not os.path.exists(image_dir_label):
+            os.makedirs(image_dir_label)
         util.save_image(im, save_path, aspect_ratio=aspect_ratio)
         ims.append(image_name)
         txts.append(label)

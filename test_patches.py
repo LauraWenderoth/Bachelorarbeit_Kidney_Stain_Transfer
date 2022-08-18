@@ -1,5 +1,5 @@
 import numpy as np
-
+import os
 from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     if opt.eval:
         model.eval()
-    save_path = "/home/laurawenderoth/Documents/kidney_microscopy/data/results"
+    save_path = os.path.join(opt.save_path,opt.name)
     mkdir(save_path)
     number_of_patches = opt.patches_per_width ** 2
     images = {}

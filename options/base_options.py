@@ -20,7 +20,7 @@ class BaseOptions():
         """Define the common options that are used in both training and test."""
         # basic parameters
         parser.add_argument('--dataroot', default="/home/laurawenderoth/Documents/kidney_microscopy/data/for_testing", help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
-        parser.add_argument('--name', type=str, default='1_patch_per_width',
+        parser.add_argument('--name', type=str, default='pix2pix_PAS2IF_1_patches_seed_957_R01G07B10_epoch_200',
                             help='name of the experiment. It decides where to store samples and models')
         parser.add_argument('--use_wandb', default = True , action='store_true', help='use wandb')
         parser.add_argument('--entity', default="laurawenderoth", help='Entity of the wandb project, only if you use w&b')
@@ -28,7 +28,7 @@ class BaseOptions():
         parser.add_argument('--gpu_ids', type=str, default='0', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
         parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         parser.add_argument('--seed',type=int, default=0, help='select a seed to make it deterministic')
-        parser.add_argument('--load_path', type=str, default="/home/laurawenderoth/Documents/Bachelorarbeit/results/checkpoints/run_with_data_augmentation/pix2pix_PAS2IF_1_patches_seed_0/5_net_G.pth",
+        parser.add_argument('--load_path', type=str, default="/home/laurawenderoth/Documents/Bachelorarbeit/results/checkpoints/run_with_L1/pix2pix_PAS2IF_1_patches_seed_957_R01_G10_B10/200_net_G.pth",
                             help='path to state dict, if empty /checkpoints/latest_net_G.pth is used')
         # model parameters
         parser.add_argument('--model', type=str, default='pix2pix', help='chooses which model to use. [cycle_gan | pix2pix | test | colorization]')
