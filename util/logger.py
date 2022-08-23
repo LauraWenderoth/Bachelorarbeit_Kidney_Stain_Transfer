@@ -6,7 +6,7 @@ import time
 from . import util
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
-from skimage.metrics import mean_absolute_error as mae
+from sklearn.metrics import mean_absolute_error as mae
 from util.fid import calculate_fid_given_images
 
 try:
