@@ -188,7 +188,7 @@ class Logger():
                               'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
                               'SSMI_B channel 1': [],
                               'SSMI_B channel 2': [], 'MSE_A channel 0': [], 'MSE_A channel 1': [],
-                              'MSE_A channel 2': [],
+                              'MSE_A channel 2': [], 'MAE_B': [], 'MAE_A': [],
                               'MAE_B channel 0': [], 'MAE_B channel 1': [], 'MAE_B channel 2': [],'MAE_A channel 0': [], 'MAE_A channel 1': [],
                               'MAE_A channel 2': [],
                               'MSE_B channel 0': [], 'MSE_B channel 1': [], 'MSE_B channel 2': [], 'FID_A': [],
