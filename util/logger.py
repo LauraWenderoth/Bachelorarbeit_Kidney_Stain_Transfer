@@ -94,9 +94,12 @@ def calculate_evaluation_metrices(visuals, opt):
                     fake_channel = fake[:, :, i]
                     ssim_value = ssim(real_channel, fake_channel, gaussian_weights=True, multichannel=False)
                     mse_value = mse(real_channel, fake_channel)
+                    y_true_channel, predictions_channel = np.array(real_channel), np.array(fake_channel)
+                    mae_value = np.mean(np.abs(y_true_channel - predictions_channel))
                     # fid_value = calculate_fid_given_images([[real_channel], [fake_channel]], batch_size=1, device=0, dims=2048)
                     evaluation_metrics["SSMI_" + domain + " channel " + str(i)] = ssim_value
                     evaluation_metrics["MSE_" + domain + " channel " + str(i)] = mse_value
+                    evaluation_metrics["MAE_" + domain + " channel " + str(i)] = mae_value
                     # evaluation_metrics["FID_" + domain + " channel " + str(i)] = fid_value
 
     return evaluation_metrics
