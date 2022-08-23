@@ -6,6 +6,7 @@ import time
 from . import util
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
+from skimage.metrics import mean_absolute_error as mae
 from util.fid import calculate_fid_given_images
 
 try:
@@ -81,6 +82,8 @@ def calculate_evaluation_metrices(visuals, opt):
             evaluation_metrics["SSMI_" + domain] = ssim_value
             mse_value = mse(real, fake)
             evaluation_metrics["MSE_" + domain] = mse_value
+            mae_value = mae(real, fake)
+            evaluation_metrics["MAE_" + domain] = mae_value
             fid_value = calculate_fid_given_images([[real], [fake]], batch_size=1, device=0, dims=2048)
             evaluation_metrics["FID_" + domain] = fid_value
             # channelwise
@@ -185,6 +188,8 @@ class Logger():
                               'SSMI_B channel 1': [],
                               'SSMI_B channel 2': [], 'MSE_A channel 0': [], 'MSE_A channel 1': [],
                               'MSE_A channel 2': [],
+                              'MAE_B channel 0': [], 'MAE_B channel 1': [], 'MAE_B channel 2': [],'MAE_A channel 0': [], 'MAE_A channel 1': [],
+                              'MAE_A channel 2': [],
                               'MSE_B channel 0': [], 'MSE_B channel 1': [], 'MSE_B channel 2': [], 'FID_A': [],
                               'FID_B': []}
         if val_dataset and model is not None:
