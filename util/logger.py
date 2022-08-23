@@ -6,7 +6,7 @@ import time
 from . import util
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
-from sklearn.metrics import mean_absolute_error as mae
+
 from util.fid import calculate_fid_given_images
 
 try:
@@ -82,7 +82,8 @@ def calculate_evaluation_metrices(visuals, opt):
             evaluation_metrics["SSMI_" + domain] = ssim_value
             mse_value = mse(real, fake)
             evaluation_metrics["MSE_" + domain] = mse_value
-            mae_value = mae(real, fake)
+            y_true, predictions = np.array(real), np.array(fake)
+            mae_value = np.mean(np.abs(y_true - predictions))
             evaluation_metrics["MAE_" + domain] = mae_value
             fid_value = calculate_fid_given_images([[real], [fake]], batch_size=1, device=0, dims=2048)
             evaluation_metrics["FID_" + domain] = fid_value
