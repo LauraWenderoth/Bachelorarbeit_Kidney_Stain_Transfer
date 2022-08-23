@@ -15,7 +15,6 @@ class UnalignedDataset(BaseDataset):
     Similarly, you need to prepare two directories:
     '/path/to/data/testA' and '/path/to/data/testB' during test time.
     """
-
     def __init__(self, opt):
         """Initialize this dataset class.
         Parameters:
