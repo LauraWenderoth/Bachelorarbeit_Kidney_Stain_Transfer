@@ -33,7 +33,7 @@ if __name__ == '__main__':
     opt.display_id = -1  # no visdom display; the test code saves the results to a HTML file.
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
 
-    paths = glob.glob(opt.load_path+"/*net_G.pth",recursive=True)
+    paths = glob.glob(opt.load_path+"/*net_G_B.pth",recursive=True)
 
     for path in paths:
         opt.load_path = path
