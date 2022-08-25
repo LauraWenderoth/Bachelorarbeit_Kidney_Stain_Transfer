@@ -24,7 +24,7 @@ def put_image_together(image, patch, index, patches_per_width):
     patch_size = 256
     image[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size] = patch
 
-def log_evaluation_metrics(self, opt, state, model=None, val_dataset=None, visuals=None):
+def log_evaluation_metrics(opt, state, model=None, val_dataset=None, visuals=None):
     """log evaluation metrics at W&B
            Parameters:
                opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
