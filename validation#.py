@@ -61,11 +61,11 @@ def log_evaluation_metrics(opt, state, wandb_run, model=None, val_dataset=None, 
             if len(evaluation_metrics[key]) > 1:
                 metric_std = metric.std()
                 if opt.use_wandb:
-                    wandb_run.wandb_run.log(
+                    wandb_run.log(
                         {state + ' ' + key + ' mean': metric_mean, state + ' ' + key + ' std': metric_std})
             else:
                 if opt.use_wandb:
-                    wandb_run.wandb_run.log({state + ' ' + key : metric_mean})
+                    wandb_run.log({state + ' ' + key : metric_mean})
     return evaluation_metrics
 
 def calculate_evaluation_metrices(visuals, opt):
