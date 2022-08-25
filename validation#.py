@@ -111,101 +111,102 @@ if __name__ == '__main__':
     paths = glob.glob(opt.load_path+"/*net_G_A.pth",recursive=True)
 
     for path in paths:
-        opt.load_path = path
+        if "latest" not in path:
+            opt.load_path = path
 
-        model = create_model(opt)  # create a model given opt.model and other options
-        model.setup(opt)  # regular setup: load and print networks; create schedulers
-        logger = Logger(opt)
-        # initialize logger
-        if opt.use_wandb:
-            wandb_run = wandb.init(project='CycleGAN-and-pix2pix-validation', name=opt.name, config=opt,
-                                   entity=opt.entity) if not wandb.run else wandb.run
-            wandb_run._label(repo='CycleGAN-and-pix2pix-validation')
+            model = create_model(opt)  # create a model given opt.model and other options
+            model.setup(opt)  # regular setup: load and print networks; create schedulers
+            logger = Logger(opt)
+            # initialize logger
+            if opt.use_wandb:
+                wandb_run = wandb.init(project='CycleGAN-and-pix2pix-validation', name=opt.name, config=opt,
+                                       entity=opt.entity) if not wandb.run else wandb.run
+                wandb_run._label(repo='CycleGAN-and-pix2pix-validation')
 
-        if opt.eval:
-            model.eval()
-        save_path = os.path.join(opt.save_path,opt.name)
-        mkdir(save_path)
-        number_of_patches = opt.patches_per_width ** 2
-        images = {}
+            if opt.eval:
+                model.eval()
+            save_path = os.path.join(opt.save_path,opt.name)
+            mkdir(save_path)
+            number_of_patches = opt.patches_per_width ** 2
+            images = {}
 
-        ims_dict = {}
+            ims_dict = {}
 
-        evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'SSMI_A channel 0': [],
-                              'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
-                              'SSMI_B channel 1': [],
-                              'SSMI_B channel 2':[] }
+            evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'SSMI_A channel 0': [],
+                                  'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
+                                  'SSMI_B channel 1': [],
+                                  'SSMI_B channel 2':[] }
 
-        for patch_index, data in enumerate(dataset):
+            for patch_index, data in enumerate(dataset):
 
-            model.set_input(data)  # unpack data from data loader
-            model.test()  # run inference
-            visuals = model.get_current_visuals()  # get image results
+                model.set_input(data)  # unpack data from data loader
+                model.test()  # run inference
+                visuals = model.get_current_visuals()  # get image results
 
-            # zusamensetzen der patches
-            if patch_index == 0 and opt.patches_per_width != 1:
-                for key in visuals.keys():
-                    key = key + " merged"
-                    images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
-            elif patch_index % number_of_patches == 0 and opt.patches_per_width != 1:
-                image_name = img_path[0].split("/")[-1]
-                image_name = image_name.split(".")[0][:-3]
+                # zusamensetzen der patches
+                if patch_index == 0 and opt.patches_per_width != 1:
+                    for key in visuals.keys():
+                        key = key + " merged"
+                        images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
+                elif patch_index % number_of_patches == 0 and opt.patches_per_width != 1:
+                    image_name = img_path[0].split("/")[-1]
+                    image_name = image_name.split(".")[0][:-3]
 
-                for key in images.keys():
-                    image = images[key]
-                    image = np.array(image, dtype=np.uint8)
-                    ims_dict[key] = wandb.Image(image)
-                    save_path_merged = os.path.join(save_path, key)
-                    if not os.path.exists(save_path_merged):
-                        os.makedirs(save_path_merged)
-                    save_image(image, save_path_merged + "/" + image_name + key + "all.png")
-                    images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
-                if opt.use_wandb:
-                    wandb.log(ims_dict)
-
-            if patch_index >= opt.num_test * number_of_patches:  # only apply our model to opt.num_test images.
-                break
-
-            img_path = model.get_image_paths()  # get image paths
-            save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
-                        use_wandb=opt.use_wandb)
-            evaluation_metrics_for_one_image = log_evaluation_metrics(opt=opt,state="test",wandb_run=wandb_run,visuals=visuals)
-            for key in evaluation_metrics_for_one_image.keys():
-                evaluation_metrics[key].extend(evaluation_metrics_for_one_image[key])
-            if opt.patches_per_width != 1:
-                for key in visuals.keys():
-                    patch = visuals[key]
-                    key = key + " merged"
-                    put_image_together(images[key], patch, patch_index, opt.patches_per_width)
-
-        image_name = img_path[0].split("/")[-1]
-        image_name = image_name.split(".")[0][:-3]
-
-        for key in images.keys():
-            image = images[key]
-            image = np.array(image, dtype=np.uint8)
-            ims_dict[key] = wandb.Image(image)
-            save_path_merged = os.path.join(save_path, key)
-            if not os.path.exists(save_path_merged):
-                os.makedirs(save_path_merged)
-            save_image(image, save_path_merged + "/" + image_name + key + "all.png")
-            images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
-        if opt.use_wandb:
-            wandb.log(ims_dict)
-
-        # log the metrics in weight and biases
-        for key in evaluation_metrics.keys():
-            if len(evaluation_metrics[key]) > 0:
-                metric = np.array(evaluation_metrics[key])
-                metric_mean = metric.mean()
-                if len(evaluation_metrics[key]) > 1:
-                    metric_std = metric.std()
+                    for key in images.keys():
+                        image = images[key]
+                        image = np.array(image, dtype=np.uint8)
+                        ims_dict[key] = wandb.Image(image)
+                        save_path_merged = os.path.join(save_path, key)
+                        if not os.path.exists(save_path_merged):
+                            os.makedirs(save_path_merged)
+                        save_image(image, save_path_merged + "/" + image_name + key + "all.png")
+                        images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
                     if opt.use_wandb:
-                        wandb.log(
-                            {"test" + ' ' + key + ' mean': metric_mean, 'test' + ' ' + key + ' std': metric_std})
-                else:
-                    if opt.use_wandb:
-                        wandb.log({'test' + ' ' + key + ' mean': metric_mean})
+                        wandb.log(ims_dict)
+
+                if patch_index >= opt.num_test * number_of_patches:  # only apply our model to opt.num_test images.
+                    break
+
+                img_path = model.get_image_paths()  # get image paths
+                save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
+                            use_wandb=opt.use_wandb)
+                evaluation_metrics_for_one_image = log_evaluation_metrics(opt=opt,state="test",wandb_run=wandb_run,visuals=visuals)
+                for key in evaluation_metrics_for_one_image.keys():
+                    evaluation_metrics[key].extend(evaluation_metrics_for_one_image[key])
+                if opt.patches_per_width != 1:
+                    for key in visuals.keys():
+                        patch = visuals[key]
+                        key = key + " merged"
+                        put_image_together(images[key], patch, patch_index, opt.patches_per_width)
+
+            image_name = img_path[0].split("/")[-1]
+            image_name = image_name.split(".")[0][:-3]
+
+            for key in images.keys():
+                image = images[key]
+                image = np.array(image, dtype=np.uint8)
+                ims_dict[key] = wandb.Image(image)
+                save_path_merged = os.path.join(save_path, key)
+                if not os.path.exists(save_path_merged):
+                    os.makedirs(save_path_merged)
+                save_image(image, save_path_merged + "/" + image_name + key + "all.png")
+                images[key] = (np.zeros((256 * opt.patches_per_width, 256 * opt.patches_per_width, 3)))
+            if opt.use_wandb:
+                wandb.log(ims_dict)
+
+            # log the metrics in weight and biases
+            for key in evaluation_metrics.keys():
+                if len(evaluation_metrics[key]) > 0:
+                    metric = np.array(evaluation_metrics[key])
+                    metric_mean = metric.mean()
+                    if len(evaluation_metrics[key]) > 1:
+                        metric_std = metric.std()
+                        if opt.use_wandb:
+                            wandb.log(
+                                {"test" + ' ' + key + ' mean': metric_mean, 'test' + ' ' + key + ' std': metric_std})
+                    else:
+                        if opt.use_wandb:
+                            wandb.log({'test' + ' ' + key + ' mean': metric_mean})
 
 
 
