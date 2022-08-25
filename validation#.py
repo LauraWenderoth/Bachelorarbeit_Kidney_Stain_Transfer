@@ -131,15 +131,10 @@ if __name__ == '__main__':
 
         ims_dict = {}
 
-        evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'MSE_B': [], 'MSE_A': [], 'SSMI_A channel 0': [],
+        evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'SSMI_A channel 0': [],
                               'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
-                              'SSMI_B channel 1': [], 'MAE_B': [], 'MAE_A': [],
-                              'SSMI_B channel 2': [], 'MSE_A channel 0': [], 'MSE_A channel 1': [],
-                              'MSE_A channel 2': [],
-                              'MAE_B channel 0': [], 'MAE_B channel 1': [], 'MAE_B channel 2': [],'MAE_A channel 0': [], 'MAE_A channel 1': [],
-                              'MAE_A channel 2': [],
-                              'MSE_B channel 0': [], 'MSE_B channel 1': [], 'MSE_B channel 2': [], 'FID_A': [],
-                              'FID_B': []}
+                              'SSMI_B channel 1': [],
+                              'SSMI_B channel 2':[] }
 
         for patch_index, data in enumerate(dataset):
 
@@ -174,7 +169,7 @@ if __name__ == '__main__':
             img_path = model.get_image_paths()  # get image paths
             save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
                         use_wandb=opt.use_wandb)
-            evaluation_metrics_for_one_image = logger.log_evaluation_metrics(opt=opt,state="test",visuals=visuals)
+            evaluation_metrics_for_one_image = log_evaluation_metrics(opt=opt,state="test",visuals=visuals)
             for key in evaluation_metrics_for_one_image.keys():
                 evaluation_metrics[key].extend(evaluation_metrics_for_one_image[key])
             if opt.patches_per_width != 1:
