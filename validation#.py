@@ -7,6 +7,8 @@ from util.logger import save_images, calculate_evaluation_metrices
 from util.logger import Logger
 import glob
 from util.util import mkdir, tensor2im, save_image
+from skimage.metrics import structural_similarity as ssim
+from util import util
 
 try:
     import wandb
@@ -21,6 +23,79 @@ def put_image_together(image, patch, index, patches_per_width):
     y = patch_index % patches_per_width
     patch_size = 256
     image[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size] = patch
+
+def log_evaluation_metrics(self, opt, state, model=None, val_dataset=None, visuals=None):
+    """log evaluation metrics at W&B
+           Parameters:
+               opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
+               state (String) -- indicates, if metrices should be stored with flag val or train
+               model (Model) -- a model to calculate the visuals is needed
+               val_Dataset (Dataset) -- a Dataset, that contains all images
+               visuals (OrderedDict) - - dictionary of images to display or save
+           """
+    evaluation_metrics = {'SSMI_A': [], 'SSMI_B': [], 'SSMI_A channel 0': [],
+                          'SSMI_A channel 1': [], 'SSMI_A channel 2': [], 'SSMI_B channel 0': [],
+                          'SSMI_B channel 1': [],
+                          'SSMI_B channel 2': []}
+    if val_dataset and model is not None:
+        if opt.phase == "val":
+            for i, data in enumerate(val_dataset):
+                model.set_input(data)
+                model.compute_visuals()
+                visuals = model.get_current_visuals()
+                evaluation_metrics_for_one_image = calculate_evaluation_metrices(visuals, opt)
+                for key in evaluation_metrics_for_one_image.keys():
+                    evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
+    elif visuals is not None:
+        evaluation_metrics_for_one_image = calculate_evaluation_metrices(visuals, opt)
+        for key in evaluation_metrics_for_one_image.keys():
+            evaluation_metrics[key].append(evaluation_metrics_for_one_image[key])
+    else:
+        print('No images to calculate evaluation metrics or no model given')
+
+    # log the metrics in weight and biases
+    for key in evaluation_metrics.keys():
+        if len(evaluation_metrics[key]) > 0:
+            metric = np.array(evaluation_metrics[key])
+            metric_mean = metric.mean()
+            if len(evaluation_metrics[key]) > 1:
+                metric_std = metric.std()
+                if self.use_wandb:
+                    self.wandb_run.log(
+                        {state + ' ' + key + ' mean': metric_mean, state + ' ' + key + ' std': metric_std})
+            else:
+                if self.use_wandb:
+                    self.wandb_run.log({state + ' ' + key : metric_mean})
+    return evaluation_metrics
+
+def calculate_evaluation_metrices(visuals, opt):
+    """Calculates vor a pair of images (visuals) all evaluation metrices: MSE, SSMI, FID
+        Parameters:
+            visuals (OrderedDict)    -- an ordered dictionary that stores (name, images (either tensor or numpy) ) pairs
+            opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
+        This function will return all evaluation metrices as a dict.
+        """
+    evaluation_metrics = {}
+    number_of_channels = opt.input_nc - 1
+    domains = ['A', 'B']
+    for domain in domains:
+        if ("real_" + domain and "fake_" + domain) in visuals.keys():
+            real = visuals["real_" + domain]
+            fake = visuals["fake_" + domain]
+            real = util.tensor2im(real)
+            fake = util.tensor2im(fake)
+
+            # normalise images
+            if real.max() > 0:
+                real = real / real.max()
+            if fake.max() > 0:
+                fake = fake / fake.max()
+
+            multichannel = number_of_channels > 1
+            ssim_value = ssim(real, fake, gaussian_weights=True, multichannel=multichannel,
+                              channel_axis=number_of_channels)
+            evaluation_metrics["SSMI_" + domain] = ssim_value
+    return evaluation_metrics
 
 
 if __name__ == '__main__':
