@@ -24,7 +24,7 @@ def put_image_together(image, patch, index, patches_per_width):
     patch_size = 256
     image[x * patch_size:x * patch_size + patch_size, y * patch_size:y * patch_size + patch_size] = patch
 
-def log_evaluation_metrics(opt, state, model=None, val_dataset=None, visuals=None):
+def log_evaluation_metrics(opt, state, wandb_run, model=None, val_dataset=None, visuals=None):
     """log evaluation metrics at W&B
            Parameters:
                opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
@@ -61,11 +61,11 @@ def log_evaluation_metrics(opt, state, model=None, val_dataset=None, visuals=Non
             if len(evaluation_metrics[key]) > 1:
                 metric_std = metric.std()
                 if opt.use_wandb:
-                    opt.wandb_run.log(
+                    wandb_run.wandb_run.log(
                         {state + ' ' + key + ' mean': metric_mean, state + ' ' + key + ' std': metric_std})
             else:
                 if opt.use_wandb:
-                    opt.wandb_run.log({state + ' ' + key : metric_mean})
+                    wandb_run.wandb_run.log({state + ' ' + key : metric_mean})
     return evaluation_metrics
 
 def calculate_evaluation_metrices(visuals, opt):
@@ -169,7 +169,7 @@ if __name__ == '__main__':
             img_path = model.get_image_paths()  # get image paths
             save_images(save_path, visuals, img_path, aspect_ratio=opt.aspect_ratio,
                         use_wandb=opt.use_wandb)
-            evaluation_metrics_for_one_image = log_evaluation_metrics(opt=opt,state="test",visuals=visuals)
+            evaluation_metrics_for_one_image = log_evaluation_metrics(opt=opt,state="test",wandb_run=wandb_run,visuals=visuals)
             for key in evaluation_metrics_for_one_image.keys():
                 evaluation_metrics[key].extend(evaluation_metrics_for_one_image[key])
             if opt.patches_per_width != 1:
