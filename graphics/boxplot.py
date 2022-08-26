@@ -1,10 +1,9 @@
-# %%
+# %% OLDDD
 import pandas as pd
 import seaborn as sns
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
-import tikzplotlib
 
 sns.set()
 
@@ -24,8 +23,8 @@ for file in files:
     df_final = pd.concat([df_final, df])
 
 # %%
-labels = ['L1 Patches', 'L1 Reset Patches', 'Van Patches']
-
+labels = ['pix2pix', 'pix2pix L1', 'pix2pix L1+reset']
+# labels = ['pix2pix', 'pix2pix L1', 'pix2pix L1+reset', 'pix2pix patches', 'cycleGAN', 'cycleGAN patches']
 
 def boxplot(df: pd.DataFrame = df_final, metric: str = 'MAE', labels: list = []) -> None:
     df_plot = df[df_final.metric == metric]
@@ -40,7 +39,6 @@ def boxplot(df: pd.DataFrame = df_final, metric: str = 'MAE', labels: list = [])
     plt.xticks(np.arange(3), labels)
     plt.xlabel('Type')
     plt.ylabel(metric)
-    tikzplotlib.save(f"graphics/{metric}.tex", axis_height='8cm', axis_width='10.5cm')
     plt.show()
 
 
@@ -48,3 +46,4 @@ boxplot(df_final, 'FID', labels)
 boxplot(df_final, 'MAE', labels)
 boxplot(df_final, 'MSE', labels)
 boxplot(df_final, 'SSIM', labels)
+
