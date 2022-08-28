@@ -117,7 +117,7 @@ if __name__ == '__main__':
             model = create_model(opt)  # create a model given opt.model and other options
             model.setup(opt)  # regular setup: load and print networks; create schedulers
             logger = Logger(opt)
-            # initialize logger
+            # initia lize logger
             if opt.use_wandb:
                 wandb_run = wandb.init(project='CycleGAN-and-pix2pix-validation', name=opt.name, config=opt,
                                        entity=opt.entity) if not wandb.run else wandb.run
