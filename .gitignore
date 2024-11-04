@@ -166,4 +166,4 @@ checkpoints/
 ../../wandb/
 wandb/
 
-
+.DS_Store
