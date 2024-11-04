@@ -1,11 +1,10 @@
-from PIL import Image
 import cv2
-from PIL import Image
-import numpy as np
 import matplotlib.pyplot as plt
-import glob
+import numpy as np
+from PIL import Image
 
-#Laura
+
+# Laura
 def pad_image_to_size(img, patch_size):
     if img.shape[0] or img.shape[1] < patch_size:
         difference_x = patch_size - img.shape[0]
@@ -20,12 +19,13 @@ def pad_image_to_size(img, patch_size):
         if not difference_y % 2 == 0:
             pad_y2 += 1
 
-        i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2), (0, 0)), 'symmetric')
+        i = np.pad(img, ((pad_x1, pad_x2), (pad_y1, pad_y2), (0, 0)), "symmetric")
         return i
     else:
         print("WARNING! Not implemented in laplacian_scaling")
 
-def remove_pad_from_image(img, orignial_img,patch_size):
+
+def remove_pad_from_image(img, orignial_img, patch_size):
     if orignial_img.shape[0] or orignial_img.shape[1] < patch_size:
         difference_x = patch_size - orignial_img.shape[0]
         pad_x1 = difference_x // 2
@@ -39,14 +39,13 @@ def remove_pad_from_image(img, orignial_img,patch_size):
         if not difference_y % 2 == 0:
             pad_y2 += 1
 
-        i = img[pad_x1:-pad_x2,pad_y1:-pad_y2]
+        i = img[pad_x1:-pad_x2, pad_y1:-pad_y2]
         return i
     else:
         print("WARNING! Not implemented in laplacian_scaling")
 
 
-
-#https://theailearner.com/tag/laplacian-pyramid-opencv/
+# https://theailearner.com/tag/laplacian-pyramid-opencv/
 def calculate_gaussian_pyramids(img, num_levels):
     lower = img.copy()
     gaussian_pyr = [lower]
@@ -55,6 +54,7 @@ def calculate_gaussian_pyramids(img, num_levels):
         gaussian_pyr.append(np.float32(lower))
     return gaussian_pyr
 
+
 def reconstruct(laplacian_pyr):
     laplacian_top = laplacian_pyr[0]
     laplacian_lst = [laplacian_top]
@@ -62,7 +62,7 @@ def reconstruct(laplacian_pyr):
     for i in range(num_levels):
         size = (laplacian_pyr[i + 1].shape[1], laplacian_pyr[i + 1].shape[0])
         laplacian_expanded = cv2.pyrUp(laplacian_top, dstsize=size)
-        laplacian_top = cv2.add(laplacian_pyr[i+1], laplacian_expanded)
+        laplacian_top = cv2.add(laplacian_pyr[i + 1], laplacian_expanded)
         laplacian_lst.append(laplacian_top)
     return laplacian_lst
 
@@ -80,7 +80,8 @@ def calculate_laplacian_pyramids(gaussian_pyr):
         laplacian_pyr.append(laplacian)
     return laplacian_pyr
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # path = "/home/laurawenderoth/Documents/kidney_microscopy/data/PAS/CKD154-003-PAS-fully-aligned.png"
     # img = Image.open(path)
     # img = np.array(img)
@@ -120,13 +121,13 @@ if __name__ == '__main__':
     expo = np.array(img).shape[0].bit_length()
     num_levels = expo - 8
     print(img.shape)
-    img_pad = pad_image_to_size(img,2048)
+    img_pad = pad_image_to_size(img, 2048)
     lower = img_pad.copy()
     gaussian_pyramids = calculate_gaussian_pyramids(np.array(lower), num_levels)
     g = gaussian_pyramids[-1]
     g = np.array(g, dtype=np.uint8)
     print(g.shape)
-    #new image
+    # new image
     path = "/home/laurawenderoth/Documents/kidney_microscopy/data/IF/CKD154-003-IF-fully-aligned.png"
     IF = Image.open(path)
     IF = np.array(IF)
@@ -134,16 +135,16 @@ if __name__ == '__main__':
     lower_if = img_pad_if.copy()
     gaussian_pyramids_if = calculate_gaussian_pyramids(np.array(lower_if), num_levels)
     g_if = gaussian_pyramids_if[-1]
-    g_if= np.array(g_if, dtype="float32")
+    g_if = np.array(g_if, dtype="float32")
 
     laplacian_pyramid = calculate_laplacian_pyramids(gaussian_pyramids)
     l_if_pyramids = laplacian_pyramid.copy()
     l_if_pyramids[0] = g_if
     laplacian_lst = reconstruct(l_if_pyramids)
     fertiges_Bild = laplacian_lst[-1]
-    #veränderung dtype von float32 zu np.uint8
+    # veränderung dtype von float32 zu np.uint8
     fertiges_Bild = np.array(fertiges_Bild, dtype=np.uint8)
-    img_without_pad = remove_pad_from_image(fertiges_Bild,img,2048)
+    img_without_pad = remove_pad_from_image(fertiges_Bild, img, 2048)
     plt.imshow(img)
     plt.title("orignial image PAS")
     plt.show()
@@ -161,7 +162,7 @@ if __name__ == '__main__':
     plt.title("upsampled without padding")
     plt.show()
 
-'''
+"""
 for g in gaussian_pyramid:
     g = np.array(g, dtype=np.uint8)
     plt.imshow(g)
@@ -177,4 +178,4 @@ fig = plt.figure(figsize=(10,5))
     fig.add_subplot(1, 4, 4)
     plt.imshow(img_without_pad)
     plt.show()
-'''
+"""
